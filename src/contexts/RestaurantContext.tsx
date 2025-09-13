@@ -401,6 +401,17 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       
       console.log('Session refreshed, proceeding with database insert for user:', freshSession.user.id);
       
+      // Check if we're manually adding to the default list to avoid trigger duplication
+      const { data: defaultList } = await supabase
+        .from('restaurant_lists')
+        .select('id')
+        .eq('user_id', freshSession.user.id)
+        .eq('is_default', true)
+        .single();
+      
+      const isAddingToDefaultList = data.selectedListIds?.includes(defaultList?.id);
+      console.log('Default list ID:', defaultList?.id, 'Adding to default manually:', isAddingToDefaultList);
+      
       const { data: inserted, error } = await supabase
         .from('restaurants')
         .insert(newRestaurant)
@@ -424,7 +435,9 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
       // Add restaurant to selected lists
       if (data.selectedListIds && data.selectedListIds.length > 0) {
         try {
+          console.log('Adding restaurant to selected lists:', data.selectedListIds);
           for (const listId of data.selectedListIds) {
+            console.log('Adding to list ID:', listId);
             const { error: listError } = await supabase
               .from('restaurant_list_items')
               .insert({
@@ -435,6 +448,8 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
             if (listError) {
               console.error('Error adding restaurant to list:', listError);
               // Continue with other lists even if one fails
+            } else {
+              console.log('Successfully added to list:', listId);
             }
           }
           console.log('Restaurant added to', data.selectedListIds.length, 'lists');
@@ -442,6 +457,8 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           console.error('Error adding restaurant to lists:', listError);
           // Don't fail the whole operation if list assignment fails
         }
+      } else {
+        console.log('No selected lists, database trigger will handle default list');
       }
       
       console.log('Final coordinates for restaurant:', coordinates);
