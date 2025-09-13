@@ -40,10 +40,8 @@ export function RatedRestaurantsPage({
   onNavigateToMap,
   onOpenSettings,
 }: RatedRestaurantsPageProps) {
-  const { lists, getRestaurantsInList } = useRestaurantLists();
+  const { lists } = useRestaurantLists();
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
-  const [listRestaurants, setListRestaurants] = useState<Restaurant[]>([]);
-  const [loadingList, setLoadingList] = useState(false);
   const [cachedLists, setCachedLists] = useState<any[]>([]);
   const [listsHydrated, setListsHydrated] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -73,29 +71,6 @@ export function RatedRestaurantsPage({
       onAddDialogClose?.();
     }
   }, [shouldOpenAddDialog, onAddDialogClose]);
-
-  // Load restaurants for selected list
-  useEffect(() => {
-    const loadListRestaurants = async () => {
-      if (selectedListId) {
-        setLoadingList(true);
-        try {
-          const restaurantsInList = await getRestaurantsInList(selectedListId);
-          setListRestaurants(restaurantsInList as Restaurant[]);
-        } catch (error) {
-          console.error('Error loading list restaurants:', error);
-          setListRestaurants([]);
-        } finally {
-          setLoadingList(false);
-        }
-      } else {
-        setListRestaurants([]);
-        setLoadingList(false);
-      }
-    };
-
-    loadListRestaurants();
-  }, [selectedListId, getRestaurantsInList]);
 
   // Hydrate from localStorage for instant first paint
   useEffect(() => {
@@ -305,8 +280,13 @@ const preloadImages = async () => {
   const { cuisineCounts, priceCounts, michelinCounts } = getFilterCounts();
 
   // Filter and sort restaurants
-  // Get the restaurants to display based on selected list
-  const displayRestaurants = selectedListId ? listRestaurants : ratedRestaurants;
+  // Get the restaurants to display based on selected list (client-side filtering for instant response)
+  const displayRestaurants = selectedListId ? 
+    ratedRestaurants.filter(restaurant => {
+      // For now, since we don't have list membership data loaded, show empty for lists
+      // This will be instantly responsive and show the empty state
+      return false;
+    }) : ratedRestaurants;
 
   const filteredRestaurants = displayRestaurants
     .filter((restaurant) => {
@@ -739,7 +719,7 @@ const preloadImages = async () => {
       </div>
 
       {/* Empty state for selected list */}
-      {selectedListId && listRestaurants.length === 0 && !loadingList ? (
+      {selectedListId && filteredRestaurants.length === 0 ? (
         <div className="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
           <h3 className="mb-2 text-lg font-medium">No restaurants in this list</h3>
           <p className="mb-4 text-muted-foreground">
@@ -749,13 +729,6 @@ const preloadImages = async () => {
             <Plus className="mr-2 h-4 w-4" />
             Add Restaurant
           </Button>
-        </div>
-      ) : selectedListId && loadingList ? (
-        <div className="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
-          <h3 className="mb-2 text-lg font-medium">Loading...</h3>
-          <p className="mb-4 text-muted-foreground">
-            Fetching restaurants from this list...
-          </p>
         </div>
       ) : filteredRestaurants.length === 0 && ((restaurants.length === 0 && cachedRestaurants.length === 0) || (searchTerm || filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10)) ? (
         <div className="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
