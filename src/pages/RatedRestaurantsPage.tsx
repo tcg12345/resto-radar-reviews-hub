@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Plus, Check, ChevronDown, X, Sliders, MapPin, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { RatedRestaurantsFilterDialog } from '@/components/RatedRestaurantsFilterDialog';
 import { resolveImageUrl } from '@/utils/imageUtils';
 import { useRestaurantLists } from '@/hooks/useRestaurantLists';
+import { CreateListDialog } from '@/components/CreateListDialog';
 
 interface RatedRestaurantsPageProps {
   restaurants: Restaurant[];
@@ -40,10 +41,9 @@ export function RatedRestaurantsPage({
   onNavigateToMap,
   onOpenSettings,
 }: RatedRestaurantsPageProps) {
-  const { lists } = useRestaurantLists();
+  const { lists, createList, getRestaurantsInList } = useRestaurantLists();
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
   const [cachedLists, setCachedLists] = useState<any[]>([]);
-  const [listsHydrated, setListsHydrated] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -60,6 +60,17 @@ export function RatedRestaurantsPage({
   const photosLoadedRef = useRef(false);
   const [cachedRestaurants, setCachedRestaurants] = useState<Restaurant[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [listRestaurants, setListRestaurants] = useState<Restaurant[]>([]);
+  const [isListLoading, setIsListLoading] = useState(false);
+  const [isCreateListDialogOpen, setIsCreateListDialogOpen] = useState(false);
+
+  const refreshSelectedList = useCallback(() => {
+    if (!selectedListId) return;
+    setIsListLoading(true);
+    getRestaurantsInList(selectedListId)
+      .then(setListRestaurants)
+      .finally(() => setIsListLoading(false));
+  }, [selectedListId, getRestaurantsInList]);
 
   const sourceRestaurants = restaurants.length > 0 ? restaurants : cachedRestaurants;
   const ratedRestaurants = sourceRestaurants.filter((r) => !r.isWishlist);
@@ -108,8 +119,6 @@ export function RatedRestaurantsPage({
       }
     } catch (e) {
       console.warn('Failed to load restaurantListsCache');
-    } finally {
-      setListsHydrated(true);
     }
   }, []);
 
@@ -126,6 +135,15 @@ export function RatedRestaurantsPage({
 
   // Use cached lists if real lists haven't loaded yet
   const displayLists = lists.length > 0 ? lists : cachedLists;
+
+  // Load restaurants for the selected list
+  useEffect(() => {
+    if (selectedListId) {
+      refreshSelectedList();
+    } else {
+      setListRestaurants([]);
+    }
+  }, [selectedListId, refreshSelectedList]);
 
   // Preload cover photos for faster perceived load, limited to first 10 for performance
   useEffect(() => {
@@ -280,13 +298,7 @@ const preloadImages = async () => {
   const { cuisineCounts, priceCounts, michelinCounts } = getFilterCounts();
 
   // Filter and sort restaurants
-  // Get the restaurants to display based on selected list (client-side filtering for instant response)
-  const displayRestaurants = selectedListId ? 
-    ratedRestaurants.filter(restaurant => {
-      // For now, since we don't have list membership data loaded, show empty for lists
-      // This will be instantly responsive and show the empty state
-      return false;
-    }) : ratedRestaurants;
+  const displayRestaurants = selectedListId ? listRestaurants : ratedRestaurants;
 
   const filteredRestaurants = displayRestaurants
     .filter((restaurant) => {
@@ -356,30 +368,50 @@ const preloadImages = async () => {
     }
   };
 
-  const handleEdit = (data: RestaurantFormData) => {
-    if (selectedRestaurant) {
-      onEditRestaurant(selectedRestaurant.id, data);
+  const handleAdd = async (data: RestaurantFormData) => {
+    await Promise.resolve(onAddRestaurant(data));
+    if (selectedListId) {
+      refreshSelectedList();
     }
   };
 
-  const handleDelete = () => {
+  const handleEdit = async (data: RestaurantFormData) => {
     if (selectedRestaurant) {
-      onDeleteRestaurant(selectedRestaurant.id);
+      await Promise.resolve(onEditRestaurant(selectedRestaurant.id, data));
+      if (selectedListId) {
+        refreshSelectedList();
+      }
+    }
+  };
+
+  const handleDelete = async () => {
+    if (selectedRestaurant) {
+      await Promise.resolve(onDeleteRestaurant(selectedRestaurant.id));
+      if (selectedListId) {
+        refreshSelectedList();
+      }
     }
   };
 
   return (
     <div className="w-full max-w-none py-6 mobile-container px-4 lg:px-6">
-      <div className="mb-4 lg:mb-6 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-        <h2 className="hidden lg:block text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Rated Restaurants</h2>
-        <div className="hidden sm:flex items-center gap-2">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Rated Restaurants</h2>
+          <p className="text-sm text-muted-foreground">Manage and organize your dining experiences</p>
+        </div>
+        <div className="hidden sm:flex flex-wrap items-center gap-2">
           <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
-          <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="mobile-button">
-            <Plus className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4" />
+          <Button variant="outline" size="sm" onClick={() => setIsCreateListDialogOpen(true)}>
+            <Plus className="mr-1 h-3 w-3 lg:h-4 lg:w-4" />
+            New List
+          </Button>
+          <Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="mr-1 h-3 w-3 lg:h-4 lg:w-4" />
             Add Restaurant
           </Button>
           {onNavigateToMap && (
-            <Button variant="outline" size="sm" onClick={onNavigateToMap} className="mobile-button">
+            <Button variant="outline" size="sm" onClick={onNavigateToMap}>
               <MapPin className="h-3 w-3 lg:h-4 lg:w-4" />
               <span className="ml-1">Map</span>
             </Button>
@@ -393,19 +425,29 @@ const preloadImages = async () => {
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
           <div className="flex flex-wrap items-center gap-2">
-            <Button size="sm" onClick={() => {/* TODO: open Create List dialog */}}
-                    className="h-8 px-3 text-xs rounded-xl">
+            <Button
+              size="sm"
+              onClick={() => setIsCreateListDialogOpen(true)}
+              className="h-8 px-3 text-xs rounded-xl"
+            >
               <Plus className="mr-1 h-3 w-3" />
               Create List
             </Button>
-            <Button size="sm" onClick={() => setIsAddDialogOpen(true)}
-                    className="h-8 px-3 text-xs rounded-xl">
+            <Button
+              size="sm"
+              onClick={() => setIsAddDialogOpen(true)}
+              className="h-8 px-3 text-xs rounded-xl"
+            >
               <Plus className="mr-1 h-3 w-3" />
               Add Restaurant
             </Button>
             {onNavigateToMap && (
-              <Button variant="outline" size="sm" onClick={onNavigateToMap}
-                      className="h-8 px-3 text-xs rounded-xl">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onNavigateToMap}
+                className="h-8 px-3 text-xs rounded-xl"
+              >
                 <MapPin className="h-3 w-3" />
               </Button>
             )}
@@ -718,58 +760,59 @@ const preloadImages = async () => {
         </div>
       </div>
 
-      {/* Empty state for selected list */}
-      {selectedListId && restaurants.length === 0 && cachedRestaurants.length === 0 ? (
+      {selectedListId && isListLoading ? (
+        <div className="py-8 text-center text-muted-foreground">Loading list...</div>
+      ) : selectedListId && displayRestaurants.length === 0 ? (
         <div className="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
           <h3 className="mb-2 text-lg font-medium">No restaurants in this list</h3>
-          <p className="mb-4 text-muted-foreground">
-            This list is empty. Add some restaurants to get started!
-          </p>
+          <p className="mb-4 text-muted-foreground">This list is empty. Add some restaurants to get started!</p>
           <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Restaurant
           </Button>
         </div>
-      ) : filteredRestaurants.length === 0 && (restaurants.length === 0 && cachedRestaurants.length === 0) ? (
+      ) : filteredRestaurants.length === 0 ? (
         <div className="rounded-lg border border-dashed bg-muted/50 p-8 text-center">
-          <h3 className="mb-2 text-lg font-medium">No rated restaurants yet</h3>
+          <h3 className="mb-2 text-lg font-medium">
+            {displayRestaurants.length === 0 ? 'No rated restaurants yet' : 'No restaurants found'}
+          </h3>
           <p className="mb-4 text-muted-foreground">
-            {searchTerm || filterCuisines.length > 0 || filterPrices.length > 0 || filterMichelins.length > 0 || ratingRange[0] > 0 || ratingRange[1] < 10
-              ? "No restaurants match your search criteria."
-              : "Start adding restaurants you've visited!"}
+            {displayRestaurants.length === 0
+              ? "Start adding restaurants you've visited!"
+              : 'No restaurants match your search criteria.'}
           </p>
           <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Your First Restaurant
+            {displayRestaurants.length === 0 ? 'Add Your First Restaurant' : 'Add Restaurant'}
           </Button>
         </div>
-        ) : (
-          <div className={view === 'grid' ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" : "space-y-4"}>
-            {filteredRestaurants.map((restaurant) => (
-              view === 'grid' ? (
-                <RestaurantCard
-                  key={restaurant.id}
-                  restaurant={restaurant}
-                  onEdit={handleOpenEditDialog}
-                  onDelete={handleOpenDeleteDialog}
-                  showAIReviewAssistant={true}
-                />
-              ) : (
-                <RestaurantCardList
-                  key={restaurant.id}
-                  restaurant={restaurant}
-                  onEdit={handleOpenEditDialog}
-                  onDelete={handleOpenDeleteDialog}
-                />
-              )
-            ))}
-          </div>
-        )}
+      ) : (
+        <div className={view === 'grid' ? 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3' : 'space-y-4'}>
+          {filteredRestaurants.map((restaurant) => (
+            view === 'grid' ? (
+              <RestaurantCard
+                key={restaurant.id}
+                restaurant={restaurant}
+                onEdit={handleOpenEditDialog}
+                onDelete={handleOpenDeleteDialog}
+                showAIReviewAssistant={true}
+              />
+            ) : (
+              <RestaurantCardList
+                key={restaurant.id}
+                restaurant={restaurant}
+                onEdit={handleOpenEditDialog}
+                onDelete={handleOpenDeleteDialog}
+              />
+            )
+          ))}
+        </div>
+      )}
 
       <RestaurantDialog
         isOpen={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
-        onSave={onAddRestaurant}
+        onSave={handleAdd}
         dialogType="add"
         defaultSelectedListId={selectedListId || undefined}
       />
@@ -809,6 +852,12 @@ const preloadImages = async () => {
         onRatingRangeChange={setRatingRange}
         onSortByChange={setSortBy}
         onClearFilters={clearFilters}
+      />
+
+      <CreateListDialog
+        isOpen={isCreateListDialogOpen}
+        onClose={() => setIsCreateListDialogOpen(false)}
+        onCreateList={createList}
       />
     </div>
   );
