@@ -63,7 +63,7 @@ const cuisineOptions = [
 cuisineOptions.push('Other');
 
 export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlist = false, hideSearch = false, defaultSelectedListId }: RestaurantFormProps) {
-  const { lists } = useRestaurantLists();
+  const { lists, loading: listsLoading } = useRestaurantLists();
   const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [photoProgress, setPhotoProgress] = useState(0);
   const [photosToProcess, setPhotosToProcess] = useState(0);
@@ -1132,8 +1132,11 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
                 </div>
               );
             })}
-            {lists.length === 0 && (
+            {lists.length === 0 && !listsLoading && (
               <p className="text-sm text-muted-foreground">No lists available</p>
+            )}
+            {listsLoading && (
+              <p className="text-sm text-muted-foreground">Loading lists...</p>
             )}
           </div>
         </div>
