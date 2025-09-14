@@ -459,7 +459,7 @@ const preloadImages = async () => {
 
         {/* Mobile Header */}
         <div className="sm:hidden">
-          <div className="space-y-4 px-2">
+          <div className="space-y-4">
             
             {/* 🔍 Search Bar - Full Width, Compact */}
             <div className="w-full">
