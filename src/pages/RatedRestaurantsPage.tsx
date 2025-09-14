@@ -408,14 +408,6 @@ const preloadImages = async () => {
                 <div className="h-6 w-px bg-border" />
                 <div className="flex items-center gap-3">
                   <Button 
-                    variant="outline" 
-                    onClick={() => setIsCreateListDialogOpen(true)}
-                    className="rounded-xl border-primary/20 hover:border-primary/40 hover:bg-primary/5"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create List
-                  </Button>
-                  <Button 
                     onClick={() => setIsAddDialogOpen(true)}
                     className="rounded-xl bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90"
                   >
@@ -435,21 +427,31 @@ const preloadImages = async () => {
               </div>
             </div>
             
-            {/* Search Bar */}
-            <div className="relative">
-              <Input
-                placeholder="Search restaurants..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full h-12 pl-4 pr-12 rounded-xl border-border/50 bg-background/80 backdrop-blur-sm focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
-              />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowMobileFilters(true)}
-                className="absolute right-2 top-2 h-8 w-8 p-0 hover:bg-primary/10 rounded-lg"
+            {/* Search Bar and Create List */}
+            <div className="flex items-center gap-4">
+              <div className="flex-1 relative">
+                <Input
+                  placeholder="Search restaurants..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full h-12 pl-4 pr-12 rounded-xl border-border/50 bg-background/80 backdrop-blur-sm focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowMobileFilters(true)}
+                  className="absolute right-2 top-2 h-8 w-8 p-0 hover:bg-primary/10 rounded-lg"
+                >
+                  <Filter className="h-4 w-4" />
+                </Button>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsCreateListDialogOpen(true)}
+                className="h-12 px-6 rounded-xl border-primary/20 hover:border-primary/40 hover:bg-primary/5 font-medium"
               >
-                <Filter className="h-4 w-4" />
+                <Plus className="mr-2 h-4 w-4" />
+                Create List
               </Button>
             </div>
           </div>
@@ -458,25 +460,17 @@ const preloadImages = async () => {
         {/* Mobile Header */}
         <div className="sm:hidden">
           <div className="bg-gradient-to-br from-background via-muted/20 to-background rounded-2xl border border-border/50 p-4 shadow-lg space-y-4">
-            {/* Top Row - View Toggle and Actions */}
+            {/* Top Row - View Toggle and Primary Actions */}
             <div className="flex items-center justify-between">
               <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
               <div className="flex items-center gap-2">
                 <Button
                   size="sm"
-                  onClick={() => setIsCreateListDialogOpen(true)}
-                  className="h-9 px-3 text-xs rounded-xl bg-gradient-to-r from-primary/80 to-primary-glow/80 hover:from-primary hover:to-primary-glow"
-                >
-                  <Plus className="mr-1 h-3 w-3" />
-                  Create
-                </Button>
-                <Button
-                  size="sm"
                   onClick={() => setIsAddDialogOpen(true)}
-                  className="h-9 px-3 text-xs rounded-xl bg-gradient-to-r from-accent/80 to-accent-glow/80 hover:from-accent hover:to-accent-glow"
+                  className="h-9 px-4 text-xs rounded-xl bg-gradient-to-r from-primary/90 to-primary-glow/90 hover:from-primary hover:to-primary-glow font-medium"
                 >
                   <Plus className="mr-1 h-3 w-3" />
-                  Add
+                  Add Restaurant
                 </Button>
                 {onNavigateToMap && (
                   <Button
@@ -489,6 +483,19 @@ const preloadImages = async () => {
                   </Button>
                 )}
               </div>
+            </div>
+
+            {/* Secondary Actions Row */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsCreateListDialogOpen(true)}
+                className="flex-1 h-9 rounded-xl border-primary/20 hover:border-primary/40 hover:bg-primary/5 font-medium"
+              >
+                <Plus className="mr-2 h-3 w-3" />
+                Create List
+              </Button>
             </div>
 
             {/* Search Row */}
