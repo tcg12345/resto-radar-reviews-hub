@@ -398,11 +398,6 @@ const preloadImages = async () => {
   return (
     <div className="w-full max-w-none py-6 mobile-container px-4 lg:px-6">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-trans
-parent">Rated Restaurants</h2>
-          <p className="text-sm text-muted-foreground">Manage and organize your dining experiences</p>
-        </div>
         <div className="hidden sm:flex flex-wrap items-center gap-2">
           <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
           <Button variant="outline" size="sm" onClick={() => setIsCreateListDialogOpen(true)}>
