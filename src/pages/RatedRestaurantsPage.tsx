@@ -397,78 +397,117 @@ const preloadImages = async () => {
 
   return (
     <div className="w-full max-w-none py-6 mobile-container px-4 lg:px-6">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="hidden sm:flex flex-wrap items-center gap-2">
-          <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
-          <Button variant="outline" size="sm" onClick={() => setIsCreateListDialogOpen(true)}>
-            <Plus className="mr-1 h-3 w-3 lg:h-4 lg:w-4" />
-            New List
-          </Button>
-          <Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="mr-1 h-3 w-3 lg:h-4 lg:w-4" />
-            Add Restaurant
-          </Button>
-          {onNavigateToMap && (
-            <Button variant="outline" size="sm" onClick={onNavigateToMap}>
-              <MapPin className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="ml-1">Map</span>
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Mobile Compact Toolbar */}
-      <div className="sm:hidden space-y-3 mb-6">
-        {/* Single Row – View Toggle and Action Buttons */}
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              size="sm"
-              onClick={() => setIsCreateListDialogOpen(true)}
-              className="h-8 px-3 text-xs rounded-xl"
-            >
-              <Plus className="mr-1 h-3 w-3" />
-              Create List
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => setIsAddDialogOpen(true)}
-              className="h-8 px-3 text-xs rounded-xl"
-            >
-              <Plus className="mr-1 h-3 w-3" />
-              Add Restaurant
-            </Button>
-            {onNavigateToMap && (
+      {/* Modern Header */}
+      <div className="mb-8">
+        {/* Desktop Header */}
+        <div className="hidden sm:block">
+          <div className="bg-gradient-to-r from-background via-muted/30 to-background rounded-2xl border border-border/50 p-6 shadow-lg">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
+                <div className="h-6 w-px bg-border" />
+                <div className="flex items-center gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsCreateListDialogOpen(true)}
+                    className="rounded-xl border-primary/20 hover:border-primary/40 hover:bg-primary/5"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create List
+                  </Button>
+                  <Button 
+                    onClick={() => setIsAddDialogOpen(true)}
+                    className="rounded-xl bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Restaurant
+                  </Button>
+                  {onNavigateToMap && (
+                    <Button 
+                      variant="outline" 
+                      onClick={onNavigateToMap}
+                      className="rounded-xl border-accent/20 hover:border-accent/40 hover:bg-accent/5"
+                    >
+                      <MapPin className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Search Bar */}
+            <div className="relative">
+              <Input
+                placeholder="Search restaurants..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full h-12 pl-4 pr-12 rounded-xl border-border/50 bg-background/80 backdrop-blur-sm focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+              />
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                onClick={onNavigateToMap}
-                className="h-8 px-3 text-xs rounded-xl"
+                onClick={() => setShowMobileFilters(true)}
+                className="absolute right-2 top-2 h-8 w-8 p-0 hover:bg-primary/10 rounded-lg"
               >
-                <MapPin className="h-3 w-3" />
+                <Filter className="h-4 w-4" />
               </Button>
-            )}
+            </div>
           </div>
         </div>
 
-        {/* Search Row */}
-        <div className="flex items-center gap-2">
-          <div className="flex-1 relative">
-            <Input
-              placeholder="Search restaurants..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-10 rounded-xl border border-border bg-background"
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowMobileFilters(true)}
-              className="absolute right-1 top-1 h-8 w-8 p-0 hover:bg-muted/50 rounded-lg"
-            >
-              <Filter className="h-4 w-4" />
-            </Button>
+        {/* Mobile Header */}
+        <div className="sm:hidden">
+          <div className="bg-gradient-to-br from-background via-muted/20 to-background rounded-2xl border border-border/50 p-4 shadow-lg space-y-4">
+            {/* Top Row - View Toggle and Actions */}
+            <div className="flex items-center justify-between">
+              <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => setIsCreateListDialogOpen(true)}
+                  className="h-9 px-3 text-xs rounded-xl bg-gradient-to-r from-primary/80 to-primary-glow/80 hover:from-primary hover:to-primary-glow"
+                >
+                  <Plus className="mr-1 h-3 w-3" />
+                  Create
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setIsAddDialogOpen(true)}
+                  className="h-9 px-3 text-xs rounded-xl bg-gradient-to-r from-accent/80 to-accent-glow/80 hover:from-accent hover:to-accent-glow"
+                >
+                  <Plus className="mr-1 h-3 w-3" />
+                  Add
+                </Button>
+                {onNavigateToMap && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onNavigateToMap}
+                    className="h-9 w-9 p-0 rounded-xl border-border/50 hover:border-accent/40 hover:bg-accent/5"
+                  >
+                    <MapPin className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Search Row */}
+            <div className="relative">
+              <Input
+                placeholder="Search restaurants..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full h-11 pl-4 pr-12 rounded-xl border-border/50 bg-background/80 backdrop-blur-sm focus:border-primary/50"
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowMobileFilters(true)}
+                className="absolute right-2 top-2 h-7 w-7 p-0 hover:bg-primary/10 rounded-lg"
+              >
+                <Filter className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>

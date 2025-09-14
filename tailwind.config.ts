@@ -65,7 +65,8 @@ export default {
 				accent: {
 					DEFAULT: 'hsl(var(--accent))',
 					foreground: 'hsl(var(--accent-foreground))',
-					muted: 'hsl(var(--accent-muted))'
+					muted: 'hsl(var(--accent-muted))',
+					glow: 'hsl(var(--accent-glow))'
 				},
 				success: {
 					DEFAULT: 'hsl(var(--success))',

@@ -234,6 +234,11 @@ All colors MUST be HSL.
     /* Single accent color - Modern blue */
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 98%;
+    --primary-glow: 217 91% 70%;
+    
+    /* Accent colors for variety */
+    --accent: 260 100% 70%;
+    --accent-glow: 260 100% 80%;
 
     /* Neutral secondary palette */
     --secondary: 210 40% 98%;
@@ -301,6 +306,11 @@ All colors MUST be HSL.
     /* Same accent color in dark mode */
     --primary: 217 91% 60%;
     --primary-foreground: 222 84% 4.9%;
+    --primary-glow: 217 91% 70%;
+    
+    /* Accent colors for dark mode */
+    --accent: 260 100% 70%;
+    --accent-glow: 260 100% 80%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
