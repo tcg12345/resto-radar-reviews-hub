@@ -105,6 +105,11 @@ export default {
                     empty: 'hsl(var(--rating-empty))',
                     filled: 'hsl(var(--rating-filled))',
                     hover: 'hsl(var(--rating-hover))'
+                },
+                glass: {
+                    DEFAULT: 'hsl(var(--glass))',
+                    border: 'hsl(var(--glass-border))',
+                    highlight: 'hsl(var(--glass-highlight))'
                 }
 			},
 			backgroundImage: {

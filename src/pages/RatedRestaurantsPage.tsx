@@ -459,61 +459,96 @@ const preloadImages = async () => {
 
         {/* Mobile Header */}
         <div className="sm:hidden">
-          <div className="bg-gradient-to-br from-background via-muted/20 to-background rounded-2xl border border-border/50 p-4 shadow-lg space-y-4">
-            {/* Top Row - View Toggle and Primary Actions */}
+          <div className="glass-panel rounded-[28px] p-6 space-y-6 mx-1">
+            {/* Icon Controls Row */}
             <div className="flex items-center justify-between">
-              <ViewToggle currentView={view} onViewChange={setView} storageKey="rated-restaurants-view" />
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => setIsAddDialogOpen(true)}
-                  className="h-9 px-4 text-xs rounded-xl bg-gradient-to-r from-primary/90 to-primary-glow/90 hover:from-primary hover:to-primary-glow font-medium"
-                >
-                  <Plus className="mr-1 h-3 w-3" />
-                  Add Restaurant
-                </Button>
-                {onNavigateToMap && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onNavigateToMap}
-                    className="h-9 w-9 p-0 rounded-xl border-border/50 hover:border-accent/40 hover:bg-accent/5"
+              <div className="flex items-center gap-3">
+                {/* View Toggle Pills */}
+                <div className="flex items-center gap-1 p-1 icon-pill rounded-full">
+                  <button
+                    onClick={() => setView('grid')}
+                    className={`p-2.5 rounded-full transition-all duration-300 ${
+                      view === 'grid' 
+                        ? 'bg-primary text-primary-foreground shadow-md' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                    }`}
                   >
-                    <MapPin className="h-3 w-3" />
-                  </Button>
+                    <div className="w-4 h-4 grid grid-cols-2 gap-0.5">
+                      <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
+                      <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
+                      <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
+                      <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => setView('list')}
+                    className={`p-2.5 rounded-full transition-all duration-300 ${
+                      view === 'list' 
+                        ? 'bg-primary text-primary-foreground shadow-md' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                    }`}
+                  >
+                    <div className="w-4 h-4 flex flex-col gap-0.5">
+                      <div className="w-full h-0.5 bg-current rounded-full"></div>
+                      <div className="w-full h-0.5 bg-current rounded-full"></div>
+                      <div className="w-full h-0.5 bg-current rounded-full"></div>
+                      <div className="w-3/4 h-0.5 bg-current rounded-full"></div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Action Icons */}
+              <div className="flex items-center gap-2">
+                {onNavigateToMap && (
+                  <button
+                    onClick={onNavigateToMap}
+                    className="icon-pill p-3 rounded-full"
+                  >
+                    <MapPin className="w-4 h-4 text-muted-foreground" />
+                  </button>
                 )}
+                <button
+                  onClick={() => setShowMobileFilters(true)}
+                  className="icon-pill p-3 rounded-full"
+                >
+                  <Filter className="w-4 h-4 text-muted-foreground" />
+                </button>
               </div>
             </div>
 
-            {/* Secondary Actions Row */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsCreateListDialogOpen(true)}
-                className="flex-1 h-9 rounded-xl border-primary/20 hover:border-primary/40 hover:bg-primary/5 font-medium"
-              >
-                <Plus className="mr-2 h-3 w-3" />
-                Create List
-              </Button>
-            </div>
+            {/* Subtle Divider */}
+            <div className="subtle-divider h-px w-full"></div>
 
-            {/* Search Row */}
+            {/* Search Bar */}
             <div className="relative">
               <Input
                 placeholder="Search restaurants..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full h-11 pl-4 pr-12 rounded-xl border-border/50 bg-background/80 backdrop-blur-sm focus:border-primary/50"
+                className="glass-search w-full h-14 pl-6 pr-6 rounded-full border-0 text-base font-normal focus:ring-0"
               />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowMobileFilters(true)}
-                className="absolute right-2 top-2 h-7 w-7 p-0 hover:bg-primary/10 rounded-lg"
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsAddDialogOpen(true)}
+                className="pill-button-primary flex-1 h-12 rounded-full font-medium text-sm tracking-wide"
               >
-                <Filter className="h-3 w-3" />
-              </Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Restaurant
+              </button>
+              <button
+                onClick={() => setIsCreateListDialogOpen(true)}
+                className="pill-button px-6 h-12 rounded-full font-medium text-sm tracking-wide relative overflow-hidden group"
+              >
+                <span className="relative z-10 flex items-center">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create List
+                </span>
+                <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-primary/60 to-primary-glow/60 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+              </button>
             </div>
           </div>
         </div>

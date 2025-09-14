@@ -239,6 +239,11 @@ All colors MUST be HSL.
     /* Accent colors for variety */
     --accent: 260 100% 70%;
     --accent-glow: 260 100% 80%;
+    
+    /* Glassmorphism colors */
+    --glass: 220 13% 18%;
+    --glass-border: 220 13% 25%;
+    --glass-highlight: 220 13% 35%;
 
     /* Neutral secondary palette */
     --secondary: 210 40% 98%;
@@ -311,6 +316,11 @@ All colors MUST be HSL.
     /* Accent colors for dark mode */
     --accent: 260 100% 70%;
     --accent-glow: 260 100% 80%;
+    
+    /* Glassmorphism colors for dark mode */
+    --glass: 220 13% 8%;
+    --glass-border: 220 13% 15%;
+    --glass-highlight: 220 13% 25%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -708,5 +718,91 @@ All colors MUST be HSL.
     font-size: 11px;
     color: hsl(var(--muted-foreground));
     line-height: 1.3;
+  }
+
+  /* Premium Control Panel Styles */
+  .glass-panel {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--glass) / 0.8) 0%,
+      hsl(var(--glass) / 0.6) 50%,
+      hsl(var(--glass) / 0.8) 100%
+    );
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid hsl(var(--glass-border) / 0.3);
+    box-shadow: 
+      0 8px 32px 0 hsl(var(--glass) / 0.4),
+      inset 0 1px 0 0 hsl(var(--glass-highlight) / 0.2);
+  }
+
+  .pill-button {
+    background: linear-gradient(135deg, hsl(var(--background) / 0.9), hsl(var(--muted) / 0.3));
+    border: 1px solid hsl(var(--border) / 0.2);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0.025em;
+  }
+
+  .pill-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -5px hsl(var(--primary) / 0.3);
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--primary-glow) / 0.05));
+    border-color: hsl(var(--primary) / 0.3);
+  }
+
+  .pill-button-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    border: 1px solid hsl(var(--primary) / 0.3);
+    color: hsl(var(--primary-foreground));
+    box-shadow: 0 4px 20px -5px hsl(var(--primary) / 0.4);
+  }
+
+  .pill-button-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px -5px hsl(var(--primary) / 0.5);
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.9), hsl(var(--primary-glow) / 0.9));
+  }
+
+  .icon-pill {
+    background: hsl(var(--background) / 0.6);
+    border: 1px solid hsl(var(--border) / 0.2);
+    backdrop-filter: blur(8px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .icon-pill:hover {
+    background: linear-gradient(135deg, hsl(var(--muted) / 0.8), hsl(var(--muted) / 0.4));
+    border-color: hsl(var(--border) / 0.4);
+    box-shadow: 0 4px 15px -3px hsl(var(--foreground) / 0.1);
+  }
+
+  .glass-search {
+    background: linear-gradient(135deg, hsl(var(--background) / 0.9), hsl(var(--muted) / 0.3));
+    border: 1px solid hsl(var(--border) / 0.2);
+    backdrop-filter: blur(12px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0.025em;
+  }
+
+  .glass-search:focus {
+    background: hsl(var(--background) / 0.95);
+    border-color: hsl(var(--primary) / 0.4);
+    box-shadow: 
+      0 0 0 3px hsl(var(--primary) / 0.1),
+      0 8px 25px -5px hsl(var(--primary) / 0.2);
+  }
+
+  .glass-search::placeholder {
+    color: hsl(var(--muted-foreground) / 0.6);
+    letter-spacing: 0.025em;
+  }
+
+  .subtle-divider {
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      hsl(var(--border) / 0.3) 20%, 
+      hsl(var(--border) / 0.3) 80%, 
+      transparent 100%
+    );
   }
 }
