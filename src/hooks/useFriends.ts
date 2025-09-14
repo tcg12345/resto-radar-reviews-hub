@@ -214,18 +214,19 @@ export function useFriends() {
       setSentRequests([]);
       setHasError(false);
       setRetryCount(0);
-      return;
-    }
-
-    // Prevent infinite retries - max 3 attempts
-    if (retryCount >= 3) {
-      console.warn('Max retries reached for friends data, stopping attempts');
       setIsLoading(false);
       return;
     }
 
-    // Instant hydrate from local cache for near-instant UI
-    let seeded = false;
+    // Prevent infinite retries - max 2 attempts only
+    if (retryCount >= 2) {
+      console.warn('Max retries reached for friends data, stopping attempts');
+      setIsLoading(false);
+      setHasError(true);
+      return;
+    }
+
+    // Load from cache immediately
     const cacheKey = `friends:list:${user.id}`;
     try {
       const cached = localStorage.getItem(cacheKey);
@@ -233,50 +234,36 @@ export function useFriends() {
         const parsed = JSON.parse(cached) as Friend[];
         if (Array.isArray(parsed)) {
           setFriends(parsed);
-          setIsLoading(false);
-          seeded = true;
         }
       }
     } catch {}
     
-    if (!seeded) setIsLoading(true);
-    
-    // Reset error state on successful mount
+    setIsLoading(true);
     setHasError(false);
     
-    // Load fresh data in background with exponential backoff on retries
-    const delay = retryCount > 0 ? Math.min(1000 * Math.pow(2, retryCount), 5000) : 0;
-    
-    const loadData = async () => {
-      if (delay > 0) {
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
-      fetchAllFriendsData().finally(() => {
-        setIsLoading(false);
-      });
-    };
-    
-    loadData();
+    // Single fetch attempt with no automatic retries
+    fetchAllFriendsData().finally(() => {
+      setIsLoading(false);
+    });
 
-    // Don't set up realtime subscriptions if we've had errors
-    if (hasError || retryCount >= 2) {
+    // Only set up realtime if no previous errors
+    if (retryCount > 0) {
       return;
     }
 
-    // Debounced refresh function to prevent too many calls
-    let timeoutId: NodeJS.Timeout;
-    const debouncedRefresh = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        if (retryCount < 3) {
-          fetchAllFriendsData();
-        }
-      }, 1000); // Increased debounce to 1 second
+    // Throttled refresh to prevent spam
+    let lastRefresh = 0;
+    const throttledRefresh = () => {
+      const now = Date.now();
+      if (now - lastRefresh > 2000) { // 2 second throttle
+        lastRefresh = now;
+        fetchAllFriendsData();
+      }
     };
 
-    // Set up real-time subscriptions with debounced updates
-    const friendRequestsChannel = supabase
-      .channel('friend-requests-realtime')
+    // Single realtime channel for both tables
+    const channel = supabase
+      .channel('friends-and-requests')
       .on(
         'postgres_changes',
         {
@@ -285,16 +272,8 @@ export function useFriends() {
           table: 'friend_requests',
           filter: `or(receiver_id.eq.${user.id},sender_id.eq.${user.id})`
         },
-        (payload) => {
-          console.log('Friend request change:', payload);
-          debouncedRefresh();
-        }
+        throttledRefresh
       )
-      .subscribe();
-
-    // Set up real-time subscription for friends table
-    const friendsChannel = supabase
-      .channel('friends-realtime')
       .on(
         'postgres_changes',
         {
@@ -303,19 +282,14 @@ export function useFriends() {
           table: 'friends',
           filter: `or(user1_id.eq.${user.id},user2_id.eq.${user.id})`
         },
-        (payload) => {
-          console.log('Friends change:', payload);
-          debouncedRefresh();
-        }
+        throttledRefresh
       )
       .subscribe();
 
     return () => {
-      clearTimeout(timeoutId);
-      supabase.removeChannel(friendRequestsChannel);
-      supabase.removeChannel(friendsChannel);
+      supabase.removeChannel(channel);
     };
-  }, [user, retryCount]);
+  }, [user, fetchAllFriendsData]);
 
   const resetRetries = () => {
     setRetryCount(0);
