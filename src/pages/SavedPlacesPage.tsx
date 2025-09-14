@@ -53,17 +53,6 @@ export function SavedPlacesPage({
           </TabsList>
         </div>
         
-        <div className="px-4 py-3 lg:px-6 border-b">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsCreateListDialogOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Create List
-          </Button>
-        </div>
         
         <TabsContent value="rated" className="mt-0 h-full">
           <RatedRestaurantsPage
