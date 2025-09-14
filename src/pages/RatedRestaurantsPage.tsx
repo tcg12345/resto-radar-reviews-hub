@@ -497,38 +497,39 @@ const preloadImages = async () => {
               </button>
             </div>
 
-            {/* 🛠 Utility Icons - Compact & Clean */}
-            <div className="flex items-center justify-center gap-4 pt-1">
-              {/* View Toggle */}
+            {/* 🛠 Utility Icons - Larger & Clear */}
+            <div className="flex items-center justify-center gap-6 pt-1">
+              {/* Grid View Toggle */}
               <button
                 onClick={() => setView('grid')}
-                className={`premium-icon-button w-7 h-7 rounded-full transition-all duration-200 ${
+                className={`premium-icon-button w-10 h-10 rounded-full transition-all duration-200 ${
                   view === 'grid' 
-                    ? 'bg-primary text-white shadow-sm' 
+                    ? 'bg-primary text-white shadow-md' 
                     : 'bg-slate-700/60 text-slate-400 hover:text-slate-200 hover:bg-slate-600/70'
                 }`}
               >
-                <div className="w-2.5 h-2.5 grid grid-cols-2 gap-0.5 mx-auto">
-                  <div className="w-1 h-1 bg-current rounded-sm"></div>
-                  <div className="w-1 h-1 bg-current rounded-sm"></div>
-                  <div className="w-1 h-1 bg-current rounded-sm"></div>
-                  <div className="w-1 h-1 bg-current rounded-sm"></div>
+                <div className="w-4 h-4 grid grid-cols-2 gap-1 mx-auto">
+                  <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
+                  <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
+                  <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
+                  <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
                 </div>
               </button>
               
+              {/* List View Toggle */}
               <button
                 onClick={() => setView('list')}
-                className={`premium-icon-button w-7 h-7 rounded-full transition-all duration-200 ${
+                className={`premium-icon-button w-10 h-10 rounded-full transition-all duration-200 ${
                   view === 'list' 
-                    ? 'bg-primary text-white shadow-sm' 
+                    ? 'bg-primary text-white shadow-md' 
                     : 'bg-slate-700/60 text-slate-400 hover:text-slate-200 hover:bg-slate-600/70'
                 }`}
               >
-                <div className="w-2.5 h-2.5 flex flex-col gap-0.5 mx-auto mt-0.5">
+                <div className="w-4 h-4 flex flex-col gap-1 mx-auto mt-1">
                   <div className="w-full h-0.5 bg-current rounded-full"></div>
                   <div className="w-full h-0.5 bg-current rounded-full"></div>
                   <div className="w-full h-0.5 bg-current rounded-full"></div>
-                  <div className="w-2/3 h-0.5 bg-current rounded-full"></div>
+                  <div className="w-3/4 h-0.5 bg-current rounded-full"></div>
                 </div>
               </button>
 
@@ -536,9 +537,9 @@ const preloadImages = async () => {
               {onNavigateToMap && (
                 <button
                   onClick={onNavigateToMap}
-                  className="premium-icon-button w-7 h-7 rounded-full bg-slate-700/60 text-slate-400 hover:text-slate-200 hover:bg-slate-600/70 transition-all duration-200 flex items-center justify-center"
+                  className="premium-icon-button w-10 h-10 rounded-full bg-slate-700/60 text-slate-400 hover:text-slate-200 hover:bg-slate-600/70 transition-all duration-200 flex items-center justify-center"
                 >
-                  <MapPin className="w-3 h-3" />
+                  <MapPin className="w-4 h-4" />
                 </button>
               )}
             </div>
