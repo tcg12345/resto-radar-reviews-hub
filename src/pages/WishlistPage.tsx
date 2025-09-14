@@ -119,31 +119,31 @@ export function WishlistPage({
 
       {/* Mobile Header */}
       <div className="sm:hidden">
-        <div className="space-y-4">
+        <div className="space-y-3 px-2">
           
-          {/* 🔍 Search Bar - Full Width, Compact */}
+          {/* 🔍 Search Bar - Compact */}
           <div className="w-full">
             <div className="relative premium-search-container rounded-lg shadow-md">
               <Input
                 placeholder="Search wishlist..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full h-11 pl-4 pr-4 rounded-lg border-0 text-base font-medium text-white placeholder:text-slate-300 bg-transparent focus:ring-0 focus:outline-none"
+                className="w-full h-10 pl-4 pr-4 rounded-lg border-0 text-sm font-medium text-white placeholder:text-slate-300 bg-transparent focus:ring-0 focus:outline-none"
               />
             </div>
           </div>
 
-          {/* ➕ Action Buttons - Full Width, Compact */}
-          <div className="flex gap-3">
+          {/* ➕ Action Buttons - Smaller & Compact */}
+          <div className="flex gap-2">
             <button
               onClick={() => setIsAddDialogOpen(true)}
-              className="premium-button-primary flex-1 h-10 rounded-lg font-semibold text-base text-white shadow-md hover:shadow-lg transition-all duration-200"
+              className="premium-button-primary flex-1 h-9 rounded-lg font-medium text-sm text-white shadow-md hover:shadow-lg transition-all duration-200"
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-1 h-3 w-3" />
               Add Restaurant
             </button>
             <Select value={activeCity} onValueChange={setActiveCity}>
-              <SelectTrigger className="premium-button-secondary flex-1 h-10 rounded-lg font-semibold text-base text-white shadow-md border-0">
+              <SelectTrigger className="premium-button-secondary flex-1 h-9 rounded-lg font-medium text-sm text-white shadow-md border-0">
                 <SelectValue placeholder="All Cities" />
               </SelectTrigger>
               <SelectContent>
