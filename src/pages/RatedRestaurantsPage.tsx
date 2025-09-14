@@ -459,86 +459,86 @@ const preloadImages = async () => {
 
         {/* Mobile Header */}
         <div className="sm:hidden">
-          <div className="space-y-5 px-2">
+          <div className="space-y-5 px-3">
             
-            {/* 🔍 Search Bar - Wide and Prominent */}
+            {/* 🔍 Search Bar - Full Width, Premium */}
             <div className="w-full">
-              <div className="relative glass-search-container rounded-xl shadow-md w-[90%] mx-auto">
+              <div className="relative premium-search-container rounded-lg shadow-lg w-[95%] mx-auto">
                 <Input
                   placeholder="Search restaurants..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full h-12 pl-5 pr-12 rounded-xl border-0 text-base font-normal text-white placeholder:text-slate-300 bg-transparent focus:ring-0 focus:outline-none"
+                  className="w-full h-14 pl-6 pr-14 rounded-lg border-0 text-lg font-medium text-white placeholder:text-[#CCD3E0] bg-transparent focus:ring-0 focus:outline-none"
                 />
                 <button
                   onClick={() => setShowMobileFilters(true)}
-                  className="absolute right-3 top-3 p-1.5 rounded-lg text-slate-300 hover:text-primary hover:bg-primary/10 transition-all duration-200"
+                  className="absolute right-4 top-4 p-2 rounded-lg text-[#CCD3E0] hover:text-primary hover:bg-primary/15 transition-all duration-300"
                 >
-                  <Filter className="w-4 h-4" />
+                  <Filter className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
-            {/* ➕ Action Buttons - Equal Width, Slimmer */}
-            <div className="flex gap-3 w-[90%] mx-auto">
+            {/* ➕ Action Buttons - Full Width, Modern */}
+            <div className="flex gap-4 w-[95%] mx-auto">
               <button
                 onClick={() => setIsAddDialogOpen(true)}
-                className="pill-button-primary flex-1 h-11 rounded-xl font-medium text-base text-white shadow-md hover:shadow-lg transition-all duration-200"
+                className="premium-button-primary flex-1 h-12 rounded-lg font-semibold text-lg text-white shadow-lg hover:shadow-xl hover:bg-primary/90 transition-all duration-300"
               >
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="mr-2 h-5 w-5" />
                 Add Restaurant
               </button>
               <button
                 onClick={() => setIsCreateListDialogOpen(true)}
-                className="pill-button-secondary flex-1 h-11 rounded-xl font-medium text-base text-slate-200 hover:text-white shadow-md hover:shadow-lg transition-all duration-200"
+                className="premium-button-secondary flex-1 h-12 rounded-lg font-semibold text-lg text-white shadow-lg hover:shadow-xl hover:bg-slate-600/90 transition-all duration-300"
               >
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="mr-2 h-5 w-5" />
                 Create List
               </button>
             </div>
 
-            {/* 🛠 Utility Icons - Compact Row */}
-            <div className="flex items-center justify-center gap-4">
+            {/* 🛠 Utility Icons - Compact & Elegant */}
+            <div className="flex items-center justify-center gap-6 pt-2">
               {/* View Toggle */}
               <button
                 onClick={() => setView('grid')}
-                className={`icon-circle w-9 h-9 rounded-full transition-all duration-200 ${
+                className={`premium-icon-button w-8 h-8 rounded-full transition-all duration-300 ${
                   view === 'grid' 
-                    ? 'bg-primary text-white shadow-sm' 
-                    : 'bg-slate-700/60 text-slate-400 hover:text-slate-200 hover:bg-slate-600/70'
+                    ? 'bg-primary text-white shadow-md shadow-primary/25' 
+                    : 'bg-slate-700/50 text-slate-400 hover:text-slate-200 hover:bg-slate-600/60 hover:shadow-sm'
                 }`}
               >
-                <div className="w-3.5 h-3.5 grid grid-cols-2 gap-0.5 mx-auto">
-                  <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
-                  <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
-                  <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
-                  <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
+                <div className="w-3 h-3 grid grid-cols-2 gap-0.5 mx-auto">
+                  <div className="w-1 h-1 bg-current rounded-sm"></div>
+                  <div className="w-1 h-1 bg-current rounded-sm"></div>
+                  <div className="w-1 h-1 bg-current rounded-sm"></div>
+                  <div className="w-1 h-1 bg-current rounded-sm"></div>
                 </div>
               </button>
               
               <button
                 onClick={() => setView('list')}
-                className={`icon-circle w-9 h-9 rounded-full transition-all duration-200 ${
+                className={`premium-icon-button w-8 h-8 rounded-full transition-all duration-300 ${
                   view === 'list' 
-                    ? 'bg-primary text-white shadow-sm' 
-                    : 'bg-slate-700/60 text-slate-400 hover:text-slate-200 hover:bg-slate-600/70'
+                    ? 'bg-primary text-white shadow-md shadow-primary/25' 
+                    : 'bg-slate-700/50 text-slate-400 hover:text-slate-200 hover:bg-slate-600/60 hover:shadow-sm'
                 }`}
               >
-                <div className="w-3.5 h-3.5 flex flex-col gap-0.5 mx-auto mt-1">
+                <div className="w-3 h-3 flex flex-col gap-0.5 mx-auto mt-0.5">
                   <div className="w-full h-0.5 bg-current rounded-full"></div>
                   <div className="w-full h-0.5 bg-current rounded-full"></div>
                   <div className="w-full h-0.5 bg-current rounded-full"></div>
-                  <div className="w-3/4 h-0.5 bg-current rounded-full"></div>
+                  <div className="w-2/3 h-0.5 bg-current rounded-full"></div>
                 </div>
               </button>
 
-              {/* Utility Icons */}
+              {/* Map Icon */}
               {onNavigateToMap && (
                 <button
                   onClick={onNavigateToMap}
-                  className="icon-circle w-9 h-9 rounded-full bg-slate-700/60 text-slate-400 hover:text-slate-200 hover:bg-slate-600/70 transition-all duration-200 flex items-center justify-center"
+                  className="premium-icon-button w-8 h-8 rounded-full bg-slate-700/50 text-slate-400 hover:text-slate-200 hover:bg-slate-600/60 hover:shadow-sm transition-all duration-300 flex items-center justify-center"
                 >
-                  <MapPin className="w-4 h-4" />
+                  <MapPin className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>

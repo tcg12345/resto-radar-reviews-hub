@@ -837,6 +837,53 @@ All colors MUST be HSL.
     box-shadow: 0 8px 25px -5px hsl(0 0% 0% / 0.4);
   }
 
+  /* Premium toolbar design classes */
+  .premium-search-container {
+    background: linear-gradient(135deg, 
+      hsl(220 25% 12% / 0.9) 0%, 
+      hsl(220 25% 8% / 0.9) 100%
+    );
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid hsl(220 25% 25% / 0.3);
+    box-shadow: 0 8px 32px -12px hsl(0 0% 0% / 0.5);
+  }
+
+  .premium-button-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    border: 1px solid hsl(var(--primary) / 0.4);
+    color: hsl(var(--primary-foreground));
+    box-shadow: 0 6px 24px -8px hsl(var(--primary) / 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+  }
+
+  .premium-button-secondary {
+    background: linear-gradient(135deg, 
+      hsl(220 15% 22% / 0.95) 0%, 
+      hsl(220 15% 18% / 0.95) 100%
+    );
+    border: 1px solid hsl(220 15% 30% / 0.4);
+    backdrop-filter: blur(16px);
+    color: white;
+    box-shadow: 0 6px 24px -8px hsl(0 0% 0% / 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+  }
+
+  .premium-icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid hsl(220 15% 25% / 0.2);
+    backdrop-filter: blur(8px);
+  }
+
   .icon-pill-small {
     background: transparent;
     border: none;
