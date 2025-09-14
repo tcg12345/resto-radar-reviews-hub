@@ -724,30 +724,31 @@ All colors MUST be HSL.
   .glass-panel {
     background: linear-gradient(
       135deg,
-      hsl(var(--glass) / 0.8) 0%,
-      hsl(var(--glass) / 0.6) 50%,
-      hsl(var(--glass) / 0.8) 100%
+      hsl(var(--glass) / 0.95) 0%,
+      hsl(var(--glass) / 0.85) 50%,
+      hsl(var(--glass) / 0.95) 100%
     );
-    backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid hsl(var(--glass-border) / 0.3);
+    backdrop-filter: blur(24px) saturate(200%);
+    border: 1px solid hsl(var(--glass-border) / 0.2);
     box-shadow: 
-      0 8px 32px 0 hsl(var(--glass) / 0.4),
-      inset 0 1px 0 0 hsl(var(--glass-highlight) / 0.2);
+      0 20px 40px -12px hsl(0 0% 0% / 0.6),
+      0 8px 32px -8px hsl(var(--glass) / 0.8),
+      inset 0 2px 0 0 hsl(var(--glass-highlight) / 0.15);
   }
 
   .pill-button {
-    background: linear-gradient(135deg, hsl(var(--background) / 0.9), hsl(var(--muted) / 0.3));
-    border: 1px solid hsl(var(--border) / 0.2);
-    backdrop-filter: blur(10px);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(135deg, hsl(var(--glass-highlight) / 0.4), hsl(var(--glass-highlight) / 0.2));
+    border: 1px solid hsl(var(--glass-border) / 0.3);
+    backdrop-filter: blur(12px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     letter-spacing: 0.025em;
   }
 
   .pill-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px -5px hsl(var(--primary) / 0.3);
-    background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--primary-glow) / 0.05));
-    border-color: hsl(var(--primary) / 0.3);
+    box-shadow: 0 12px 32px -8px hsl(var(--foreground) / 0.3);
+    background: linear-gradient(135deg, hsl(var(--glass-highlight) / 0.6), hsl(var(--glass-highlight) / 0.3));
+    border-color: hsl(var(--glass-border) / 0.5);
   }
 
   .pill-button-primary {
@@ -777,19 +778,19 @@ All colors MUST be HSL.
   }
 
   .glass-search {
-    background: linear-gradient(135deg, hsl(var(--background) / 0.9), hsl(var(--muted) / 0.3));
-    border: 1px solid hsl(var(--border) / 0.2);
-    backdrop-filter: blur(12px);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(135deg, hsl(var(--glass-highlight) / 0.3), hsl(var(--glass-highlight) / 0.1));
+    border: 1px solid hsl(var(--glass-border) / 0.2);
+    backdrop-filter: blur(16px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     letter-spacing: 0.025em;
   }
 
   .glass-search:focus {
-    background: hsl(var(--background) / 0.95);
-    border-color: hsl(var(--primary) / 0.4);
+    background: linear-gradient(135deg, hsl(var(--glass-highlight) / 0.5), hsl(var(--glass-highlight) / 0.2));
+    border-color: hsl(var(--primary) / 0.5);
     box-shadow: 
-      0 0 0 3px hsl(var(--primary) / 0.1),
-      0 8px 25px -5px hsl(var(--primary) / 0.2);
+      0 0 0 4px hsl(var(--primary) / 0.15),
+      0 12px 32px -8px hsl(var(--primary) / 0.4);
   }
 
   .glass-search::placeholder {

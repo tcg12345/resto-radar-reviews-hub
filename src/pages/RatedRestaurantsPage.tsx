@@ -459,96 +459,97 @@ const preloadImages = async () => {
 
         {/* Mobile Header */}
         <div className="sm:hidden">
-          <div className="glass-panel rounded-[28px] p-6 space-y-6 mx-1">
-            {/* Icon Controls Row */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {/* View Toggle Pills */}
-                <div className="flex items-center gap-1 p-1 icon-pill rounded-full">
+          <div className="relative">
+            {/* Floating Toolbar */}
+            <div className="glass-panel rounded-3xl p-8 mx-2 shadow-2xl border-0">
+              
+              {/* Search Bar - Top Priority */}
+              <div className="mb-8">
+                <div className="relative">
+                  <Input
+                    placeholder="Search restaurants..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="glass-search w-full h-16 pl-8 pr-8 rounded-full border-0 text-lg font-light text-white placeholder:text-white/50 focus:ring-0 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons - Primary Actions */}
+              <div className="flex gap-4 mb-8">
+                <button
+                  onClick={() => setIsAddDialogOpen(true)}
+                  className="pill-button-primary flex-1 h-14 rounded-full font-medium text-base tracking-wide text-white shadow-lg"
+                >
+                  <Plus className="mr-3 h-5 w-5" />
+                  Add Restaurant
+                </button>
+                <button
+                  onClick={() => setIsCreateListDialogOpen(true)}
+                  className="pill-button flex-1 h-14 rounded-full font-medium text-base tracking-wide text-white/90 hover:text-white"
+                >
+                  <Plus className="mr-3 h-5 w-5" />
+                  Create List
+                </button>
+              </div>
+
+              {/* Control Icons - Secondary Actions */}
+              <div className="flex items-center justify-center gap-6">
+                {/* View Toggle */}
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => setView('grid')}
-                    className={`p-2.5 rounded-full transition-all duration-300 ${
+                    className={`icon-pill p-4 rounded-full transition-all duration-300 ${
                       view === 'grid' 
-                        ? 'bg-primary text-primary-foreground shadow-md' 
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                        ? 'bg-primary/20 text-primary shadow-lg ring-2 ring-primary/30' 
+                        : 'text-white/60 hover:text-white/90 hover:bg-white/10'
                     }`}
                   >
-                    <div className="w-4 h-4 grid grid-cols-2 gap-0.5">
-                      <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
-                      <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
-                      <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
-                      <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
+                    <div className="w-5 h-5 grid grid-cols-2 gap-1">
+                      <div className="w-2 h-2 bg-current rounded-sm"></div>
+                      <div className="w-2 h-2 bg-current rounded-sm"></div>
+                      <div className="w-2 h-2 bg-current rounded-sm"></div>
+                      <div className="w-2 h-2 bg-current rounded-sm"></div>
                     </div>
                   </button>
                   <button
                     onClick={() => setView('list')}
-                    className={`p-2.5 rounded-full transition-all duration-300 ${
+                    className={`icon-pill p-4 rounded-full transition-all duration-300 ${
                       view === 'list' 
-                        ? 'bg-primary text-primary-foreground shadow-md' 
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                        ? 'bg-primary/20 text-primary shadow-lg ring-2 ring-primary/30' 
+                        : 'text-white/60 hover:text-white/90 hover:bg-white/10'
                     }`}
                   >
-                    <div className="w-4 h-4 flex flex-col gap-0.5">
+                    <div className="w-5 h-5 flex flex-col gap-1">
                       <div className="w-full h-0.5 bg-current rounded-full"></div>
                       <div className="w-full h-0.5 bg-current rounded-full"></div>
                       <div className="w-full h-0.5 bg-current rounded-full"></div>
-                      <div className="w-3/4 h-0.5 bg-current rounded-full"></div>
+                      <div className="w-4 h-0.5 bg-current rounded-full"></div>
                     </div>
                   </button>
                 </div>
-              </div>
 
-              {/* Action Icons */}
-              <div className="flex items-center gap-2">
-                {onNavigateToMap && (
+                {/* Divider */}
+                <div className="w-px h-8 bg-white/20"></div>
+
+                {/* Utility Icons */}
+                <div className="flex items-center gap-3">
+                  {onNavigateToMap && (
+                    <button
+                      onClick={onNavigateToMap}
+                      className="icon-pill p-4 rounded-full text-white/60 hover:text-white/90 hover:bg-white/10 transition-all duration-300"
+                    >
+                      <MapPin className="w-5 h-5" />
+                    </button>
+                  )}
                   <button
-                    onClick={onNavigateToMap}
-                    className="icon-pill p-3 rounded-full"
+                    onClick={() => setShowMobileFilters(true)}
+                    className="icon-pill p-4 rounded-full text-white/60 hover:text-white/90 hover:bg-white/10 transition-all duration-300"
                   >
-                    <MapPin className="w-4 h-4 text-muted-foreground" />
+                    <Filter className="w-5 h-5" />
                   </button>
-                )}
-                <button
-                  onClick={() => setShowMobileFilters(true)}
-                  className="icon-pill p-3 rounded-full"
-                >
-                  <Filter className="w-4 h-4 text-muted-foreground" />
-                </button>
+                </div>
               </div>
-            </div>
-
-            {/* Subtle Divider */}
-            <div className="subtle-divider h-px w-full"></div>
-
-            {/* Search Bar */}
-            <div className="relative">
-              <Input
-                placeholder="Search restaurants..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="glass-search w-full h-14 pl-6 pr-6 rounded-full border-0 text-base font-normal focus:ring-0"
-              />
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setIsAddDialogOpen(true)}
-                className="pill-button-primary flex-1 h-12 rounded-full font-medium text-sm tracking-wide"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add Restaurant
-              </button>
-              <button
-                onClick={() => setIsCreateListDialogOpen(true)}
-                className="pill-button px-6 h-12 rounded-full font-medium text-sm tracking-wide relative overflow-hidden group"
-              >
-                <span className="relative z-10 flex items-center">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create List
-                </span>
-                <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-primary/60 to-primary-glow/60 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
-              </button>
             </div>
           </div>
         </div>
