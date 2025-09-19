@@ -63,16 +63,41 @@ function LocationDisplay({
 // Helper function to get current day's hours
 const getCurrentDayHours = (hours: string) => {
   if (!hours) return 'Hours not available';
-  const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long'
-  });
+  
+  // Handle special cases
   if (hours.includes('Call for hours') || hours.includes('Hours vary')) {
     return 'Call for hours';
   }
-  // Extract today's hours if format includes daily breakdown
-  const lines = hours.split('\n');
-  const todayLine = lines.find(line => line.toLowerCase().includes(today.toLowerCase()));
-  return todayLine || hours.split('\n')[0] || hours;
+  
+  // Get current day name in different formats to match
+  const today = new Date();
+  const fullDay = today.toLocaleDateString('en-US', { weekday: 'long' }); // Monday
+  const shortDay = today.toLocaleDateString('en-US', { weekday: 'short' }); // Mon
+  
+  // Split hours by lines and find today's hours
+  const lines = hours.split('\n').filter(line => line.trim());
+  
+  // Try to find today's line with various formats
+  const todayLine = lines.find(line => {
+    const lowerLine = line.toLowerCase();
+    return lowerLine.includes(fullDay.toLowerCase()) || 
+           lowerLine.includes(shortDay.toLowerCase()) ||
+           lowerLine.startsWith(fullDay.toLowerCase()) ||
+           lowerLine.startsWith(shortDay.toLowerCase());
+  });
+  
+  if (todayLine) {
+    // Extract time from the line (remove day name)
+    const timeMatch = todayLine.match(/:\s*(.+)/) || todayLine.match(/\w+\s+(.+)/);
+    if (timeMatch) {
+      const timeStr = timeMatch[1].trim();
+      return timeStr || 'Closed';
+    }
+    return todayLine;
+  }
+  
+  // If no specific day found, return first line or full hours string
+  return lines[0] || hours;
 };
 export function RestaurantCard({
   restaurant,
