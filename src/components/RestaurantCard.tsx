@@ -69,21 +69,37 @@ const getCurrentDayHours = (hours: string) => {
     return 'Call for hours';
   }
   
-  // Get current day name in different formats to match
+  // Get current day name and index
   const today = new Date();
-  const fullDay = today.toLocaleDateString('en-US', { weekday: 'long' }); // Monday
-  const shortDay = today.toLocaleDateString('en-US', { weekday: 'short' }); // Mon
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const dayNamesShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const currentDayIndex = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  const currentDayName = dayNames[currentDayIndex];
+  const currentDayShort = dayNamesShort[currentDayIndex];
   
-  // Split hours by lines and find today's hours
+  // Split hours by lines and filter empty lines
   const lines = hours.split('\n').filter(line => line.trim());
   
-  // Try to find today's line with various formats
+  // If we have exactly 7 lines, assume it's ordered Sunday to Saturday
+  if (lines.length === 7) {
+    const todayHours = lines[currentDayIndex];
+    if (todayHours) {
+      // Extract time from the line (remove day name)
+      const timeMatch = todayHours.match(/:\s*(.+)/) || todayHours.match(/\w+\s+(.+)/);
+      if (timeMatch) {
+        return timeMatch[1].trim() || 'Closed';
+      }
+      return todayHours;
+    }
+  }
+  
+  // Try to find today's line by matching day names
   const todayLine = lines.find(line => {
     const lowerLine = line.toLowerCase();
-    return lowerLine.includes(fullDay.toLowerCase()) || 
-           lowerLine.includes(shortDay.toLowerCase()) ||
-           lowerLine.startsWith(fullDay.toLowerCase()) ||
-           lowerLine.startsWith(shortDay.toLowerCase());
+    return lowerLine.includes(currentDayName.toLowerCase()) || 
+           lowerLine.includes(currentDayShort.toLowerCase()) ||
+           lowerLine.startsWith(currentDayName.toLowerCase()) ||
+           lowerLine.startsWith(currentDayShort.toLowerCase());
   });
   
   if (todayLine) {
@@ -96,8 +112,8 @@ const getCurrentDayHours = (hours: string) => {
     return todayLine;
   }
   
-  // If no specific day found, return first line or full hours string
-  return lines[0] || hours;
+  // If no specific day found, return first line or indicate hours unavailable
+  return lines.length > 0 ? 'Hours available' : 'Hours not available';
 };
 export function RestaurantCard({
   restaurant,

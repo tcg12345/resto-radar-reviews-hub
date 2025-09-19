@@ -560,9 +560,9 @@ export function UnifiedRestaurantDetails({
       return restaurantData.opening_hours.weekday_text;
     }
     if (restaurantData.opening_hours || restaurantData.openingHours) {
-      return (restaurantData.opening_hours || restaurantData.openingHours).split('\n');
+      return (restaurantData.opening_hours || restaurantData.openingHours).split('\n').filter(line => line.trim());
     }
-    return null;
+    return [];
   };
 
   const getPriceDisplay = (priceRange?: number) => {
@@ -851,106 +851,14 @@ export function UnifiedRestaurantDetails({
             </Card>
 
             {/* Hours Card */}
-            {getOpeningHours() && (
-              <Card className="bg-card/80 backdrop-blur-sm border-border/60 shadow-lg">
-                <CardContent className="p-4">
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-foreground" />
-                      <span className={`text-sm font-medium ${
-                        restaurantData.isOpen ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {restaurantData.isOpen ? 'Open' : 'Closed'}
-                      </span>
-                    </div>
-                    
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-muted-foreground hover:text-foreground p-1 h-auto"
-                      onClick={() => setIsHoursExpanded(!isHoursExpanded)}
-                    >
-                      {isHoursExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </Button>
-                  </div>
-
-                  {/* Today's hours only */}
-                  {!isHoursExpanded && (
-                    <div className="flex justify-between items-center py-1">
-                      <span className="text-sm font-medium text-foreground">Today</span>
-                      <span className="text-sm text-muted-foreground">
-                        {(() => {
-                          const todayIndex = new Date().getDay();
-                          const hoursArray = getOpeningHours();
-                          if (!hoursArray || !Array.isArray(hoursArray) || hoursArray.length === 0) {
-                            return 'Hours unavailable';
-                          }
-                          if (todayIndex >= hoursArray.length) {
-                            return 'Hours unavailable';
-                          }
-                          const todayHours = hoursArray[todayIndex];
-                          if (!todayHours || typeof todayHours !== 'string') {
-                            return 'Hours unavailable';
-                          }
-                          const parts = todayHours.split(':');
-                          return parts.length > 1 ? parts.slice(1).join(':').trim() : 'Closed';
-                        })()}
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* Full week schedule */}
-                  {isHoursExpanded && (
-                    <div className="space-y-2">
-                      {(() => {
-                        const hoursArray = getOpeningHours();
-                        if (!hoursArray || !Array.isArray(hoursArray) || hoursArray.length === 0) {
-                          return (
-                            <div className="text-sm text-muted-foreground text-center py-2">
-                              Hours unavailable
-                            </div>
-                          );
-                        }
-                        
-                        return hoursArray.map((hours, index) => {
-                          if (!hours || typeof hours !== 'string') {
-                            return null;
-                          }
-                          
-                          const todayIndex = new Date().getDay();
-                          const isToday = index === todayIndex;
-                          const parts = hours.split(':');
-                          const dayName = parts[0]?.trim() || `Day ${index + 1}`;
-                          const timeRange = parts.length > 1 ? parts.slice(1).join(':').trim() : 'Closed';
-                          
-                          return (
-                            <div 
-                              key={index} 
-                              className={`flex justify-between items-center py-1 ${
-                                isToday ? 'font-medium' : ''
-                              }`}
-                            >
-                              <span className={`text-sm min-w-[70px] ${
-                                isToday ? 'text-primary' : 'text-foreground'
-                              }`}>
-                                {dayName}
-                              </span>
-                              
-                              <span className={`text-sm text-right ${
-                                isToday ? 'text-primary font-medium' : 'text-muted-foreground'
-                              }`}>
-                                {timeRange}
-                              </span>
-                            </div>
-                          );
-                        }).filter(Boolean);
-                      })()}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+            <Card className="bg-card/80 backdrop-blur-sm border-border/60 shadow-lg">
+              <CardContent className="p-4">
+                <OpeningHoursDisplay 
+                  hours={getOpeningHours()} 
+                  className="border-0 bg-transparent p-0"
+                />
+              </CardContent>
+            </Card>
           </div>
 
           {/* Map */}
