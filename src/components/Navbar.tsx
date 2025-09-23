@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { GrubbyLogo } from '@/components/GrubbyLogo';
 import { NotificationsPanel } from '@/components/NotificationsPanel';
 import { useUnreadMessageCount } from '@/hooks/useUnreadMessageCount';
+import { AppSidebar } from '@/components/AppSidebar';
 
 interface NavbarProps {
   activeTab: 'home' | 'places' | 'search' | 'settings' | 'profile' | 'travel' | 'friends';
@@ -23,7 +24,6 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
     { id: 'home' as const, label: 'Home', icon: Home, shortLabel: 'Home' },
     { id: 'search' as const, label: 'Search & Discover', icon: Search, shortLabel: 'Search' },
     { id: 'places' as const, label: 'My Places', icon: Star, shortLabel: 'Places' },
-    { id: 'travel' as const, label: 'Travel', icon: Calendar, shortLabel: 'Travel' },
     { id: 'friends' as const, label: 'Friends', icon: Users, shortLabel: 'Friends' },
     { id: 'profile' as const, label: 'Profile', icon: User, shortLabel: 'Profile' },
   ];
@@ -32,7 +32,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
     { id: 'home' as const, label: 'Home', icon: Home, shortLabel: 'Home' },
     { id: 'search' as const, label: 'Search & Discover', icon: Search, shortLabel: 'Search' },
     { id: 'places' as const, label: 'My Places', icon: Star, shortLabel: 'Places' },
-    { id: 'travel' as const, label: 'Travel', icon: Calendar, shortLabel: 'Travel' },
+    { id: 'friends' as const, label: 'Friends', icon: Users, shortLabel: 'Friends' },
     { id: 'profile' as const, label: 'Profile', icon: User, shortLabel: 'Profile' },
   ];
 
@@ -74,33 +74,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
 
           <div className="flex items-center space-x-2">
             {user ? (
-              <>
-                <Button
-                  variant="ghost"
-                  size="lg"
-                  onClick={() => navigate('/chat-list')}
-                  className="h-12 w-12 relative"
-                  title="Messages"
-                >
-                  <MessageCircle className="h-6 w-6" />
-                  {unreadMessageCount > 0 && (
-                    <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                      {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
-                    </span>
-                  )}
-                  <span className="sr-only">Messages</span>
-                </Button>
-                <NotificationsPanel />
-                <Button
-                  variant="ghost"
-                  size="lg"
-                  onClick={() => onTabChange('settings')}
-                  className="h-12 w-12"
-                >
-                  <Settings className="h-8 w-8" />
-                  <span className="sr-only">Settings</span>
-                </Button>
-              </>
+              <AppSidebar />
             ) : (
               <Button 
                 variant="outline" 
@@ -125,30 +99,9 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
           
           <div className="flex items-center space-x-3">
             {user ? (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate('/chat-list')}
-                  className="h-9 w-9 relative mobile-tap-target rounded-full"
-                >
-                  <MessageCircle className="h-5 w-5" />
-                  {unreadMessageCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
-                      {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
-                    </span>
-                  )}
-                </Button>
-                <NotificationsPanel />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onTabChange('settings')}
-                  className="h-9 w-9 mobile-tap-target rounded-full"
-                >
-                  <Settings className="h-5 w-5" />
-                </Button>
-              </>
+              <div className="lg:hidden">
+                <AppSidebar />
+              </div>
             ) : (
               <Button 
                 variant="outline" 
