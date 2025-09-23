@@ -245,6 +245,10 @@ export function useRestaurantLists() {
     fetchLists();
   }, []);
 
+  const refreshLists = async () => {
+    await fetchLists();
+  };
+
   return {
     lists,
     loading,
@@ -255,5 +259,6 @@ export function useRestaurantLists() {
     removeRestaurantFromList,
     getRestaurantsInList,
     fetchLists,
+    refreshLists,
   };
 }

@@ -24,7 +24,7 @@ export function RestaurantListCard({
   onDelete 
 }: RestaurantListCardProps) {
   return (
-    <Card className="cursor-pointer hover:shadow-md transition-shadow group">
+    <Card className="cursor-pointer hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-card/95 to-card border-0 shadow-md hover:scale-[1.02] group">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div 
@@ -32,11 +32,11 @@ export function RestaurantListCard({
             onClick={() => onSelect(list)}
           >
             <div className="flex items-center gap-2 mb-1">
-              <CardTitle className="text-lg truncate">
+              <CardTitle className="text-xl font-semibold truncate group-hover:text-primary transition-colors">
                 {list.name}
               </CardTitle>
               {list.is_default && (
-                <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                <Badge variant="secondary" className="text-xs flex items-center gap-1 bg-primary/10 text-primary border-primary/20">
                   <Star className="h-3 w-3" />
                   Default
                 </Badge>
@@ -87,11 +87,16 @@ export function RestaurantListCard({
           className="cursor-pointer"
           onClick={() => onSelect(list)}
         >
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>
-              {list.restaurant_count || 0} restaurant{(list.restaurant_count || 0) !== 1 ? 's' : ''}
-            </span>
-            <span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold text-primary">
+                {list.restaurant_count || 0}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                restaurant{(list.restaurant_count || 0) !== 1 ? 's' : ''}
+              </span>
+            </div>
+            <span className="text-xs text-muted-foreground">
               {new Date(list.created_at).toLocaleDateString()}
             </span>
           </div>

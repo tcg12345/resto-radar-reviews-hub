@@ -63,7 +63,7 @@ const cuisineOptions = [
 cuisineOptions.push('Other');
 
 export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlist = false, hideSearch = false, defaultSelectedListId }: RestaurantFormProps) {
-  const { lists, loading: listsLoading } = useRestaurantLists();
+  const { lists, loading: listsLoading, addRestaurantToList } = useRestaurantLists();
   const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [photoProgress, setPhotoProgress] = useState(0);
   const [photosToProcess, setPhotosToProcess] = useState(0);
@@ -1098,48 +1098,58 @@ export function RestaurantForm({ initialData, onSubmit, onCancel, defaultWishlis
           />
         </div>
 
-        {/* List Selection */}
-        <div className="space-y-2">
-          <Label>Add to Lists</Label>
-          <div className="space-y-2">
-            {lists.map((list) => {
-              const isSelected = formData.selectedListIds?.includes(list.id) || false;
-              return (
-                <div key={list.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`list-${list.id}`}
-                    checked={isSelected}
-                    onCheckedChange={(checked) => {
-                      setFormData(prev => {
-                        const currentIds = prev.selectedListIds || [];
-                        if (checked) {
-                          return {
-                            ...prev,
-                            selectedListIds: [...currentIds, list.id]
-                          };
-                        } else {
-                          return {
-                            ...prev,
-                            selectedListIds: currentIds.filter(id => id !== list.id)
-                          };
-                        }
-                      });
-                    }}
-                  />
-                  <Label htmlFor={`list-${list.id}`} className="text-sm font-normal cursor-pointer">
-                    {list.name}
-                  </Label>
-                </div>
-              );
-            })}
-            {lists.length === 0 && !listsLoading && (
-              <p className="text-sm text-muted-foreground">No lists available</p>
-            )}
-            {listsLoading && (
-              <p className="text-sm text-muted-foreground">Loading lists...</p>
-            )}
+        {/* List Selection - Enhanced UI and Hidden reorder option when adding to specific list */}
+        {!formData.isWishlist && (
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Add to Lists</Label>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {listsLoading ? (
+                <div className="text-sm text-muted-foreground">Loading lists...</div>
+              ) : (
+                lists.map((list) => {
+                  const isSelected = formData.selectedListIds?.includes(list.id) || false;
+                  return (
+                    <div key={list.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`list-${list.id}`}
+                        checked={isSelected}
+                        onCheckedChange={(checked) => {
+                          setFormData(prev => {
+                            const currentIds = prev.selectedListIds || [];
+                            if (checked) {
+                              return {
+                                ...prev,
+                                selectedListIds: [...currentIds, list.id]
+                              };
+                            } else {
+                              return {
+                                ...prev,
+                                selectedListIds: currentIds.filter(id => id !== list.id)
+                              };
+                            }
+                          });
+                        }}
+                      />
+                      <Label htmlFor={`list-${list.id}`} className="text-sm font-medium cursor-pointer">
+                        {list.name}
+                        {list.is_default && (
+                          <span className="ml-1 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                            Default
+                          </span>
+                        )}
+                      </Label>
+                    </div>
+                  );
+                })
+              )}
+              {!listsLoading && lists.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No lists available. Create a list first to organize your restaurants.
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="space-y-2">
           <Label>Price Range *</Label>

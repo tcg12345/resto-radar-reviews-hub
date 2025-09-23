@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Search, Download } from 'lucide-react';
@@ -14,12 +14,17 @@ interface RestaurantListsViewProps {
 }
 
 export function RestaurantListsView({ onSelectList }: RestaurantListsViewProps) {
-  const { lists, loading, createList, deleteList } = useRestaurantLists();
+  const { lists, loading, createList, deleteList, refreshLists } = useRestaurantLists();
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [selectedListForImport, setSelectedListForImport] = useState<RestaurantList | null>(null);
   const { toast } = useToast();
+
+  // Refresh lists when component mounts to ensure instant loading
+  useEffect(() => {
+    refreshLists();
+  }, [refreshLists]);
 
   const filteredLists = lists.filter(list =>
     list.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -131,7 +136,7 @@ export function RestaurantListsView({ onSelectList }: RestaurantListsViewProps) 
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredLists.map(list => (
             <div key={list.id} className="relative group">
               <RestaurantListCard
@@ -144,7 +149,7 @@ export function RestaurantListsView({ onSelectList }: RestaurantListsViewProps) 
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-background/80 backdrop-blur-sm hover:bg-background/90"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleImportFromItinerary(list);
