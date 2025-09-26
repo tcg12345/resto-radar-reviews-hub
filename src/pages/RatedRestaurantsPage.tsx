@@ -65,12 +65,20 @@ export function RatedRestaurantsPage({
   const [isListLoading, setIsListLoading] = useState(false);
   const [isCreateListDialogOpen, setIsCreateListDialogOpen] = useState(false);
 
-  const refreshSelectedList = useCallback(() => {
+  const refreshSelectedList = useCallback(async () => {
     if (!selectedListId) return;
     setIsListLoading(true);
-    getRestaurantsInList(selectedListId)
-      .then(setListRestaurants)
-      .finally(() => setIsListLoading(false));
+    try {
+      console.log('Loading restaurants for list:', selectedListId);
+      const restaurants = await getRestaurantsInList(selectedListId);
+      console.log('Loaded restaurants:', restaurants);
+      setListRestaurants(restaurants);
+    } catch (error) {
+      console.error('Error loading list restaurants:', error);
+      setListRestaurants([]);
+    } finally {
+      setIsListLoading(false);
+    }
   }, [selectedListId, getRestaurantsInList]);
 
   const sourceRestaurants = restaurants.length > 0 ? restaurants : cachedRestaurants;
