@@ -1079,18 +1079,12 @@ export type Database = {
         Args: { place_id_param: string; restaurant_name_param?: string }
         Returns: number
       }
-      auto_link_all_restaurants: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      auto_link_all_restaurants: { Args: never; Returns: number }
       build_friend_profile_cache: {
         Args: { target_user_id: string }
         Returns: Json
       }
-      check_email_exists: {
-        Args: { email_to_check: string }
-        Returns: boolean
-      }
+      check_email_exists: { Args: { email_to_check: string }; Returns: boolean }
       check_rate_limit: {
         Args: {
           endpoint_name: string
@@ -1141,43 +1135,65 @@ export type Database = {
           username: string
         }[]
       }
-      get_expert_rating_stats: {
-        Args:
-          | { place_id_param: string }
-          | { place_id_param: string; restaurant_name_param?: string }
-        Returns: {
-          avg_rating: number
-          total_reviews: number
-        }[]
-      }
-      get_expert_reviews_for_place: {
-        Args:
-          | {
+      get_expert_rating_stats:
+        | {
+            Args: { place_id_param: string; restaurant_name_param?: string }
+            Returns: {
+              avg_rating: number
+              total_reviews: number
+            }[]
+          }
+        | {
+            Args: { place_id_param: string }
+            Returns: {
+              avg_rating: number
+              total_reviews: number
+            }[]
+          }
+      get_expert_reviews_for_place:
+        | {
+            Args: {
               page_limit?: number
               page_offset?: number
               place_id_param: string
             }
-          | {
+            Returns: {
+              avatar_url: string
+              category_ratings: Json
+              created_at: string
+              overall_rating: number
+              photo_captions: string[]
+              photo_dish_names: string[]
+              photos: string[]
+              review_id: string
+              review_text: string
+              source_type: string
+              user_id: string
+              username: string
+            }[]
+          }
+        | {
+            Args: {
               page_limit?: number
               page_offset?: number
               place_id_param: string
               restaurant_name_param?: string
             }
-        Returns: {
-          avatar_url: string
-          category_ratings: Json
-          created_at: string
-          overall_rating: number
-          photo_captions: string[]
-          photo_dish_names: string[]
-          photos: string[]
-          review_id: string
-          review_text: string
-          source_type: string
-          user_id: string
-          username: string
-        }[]
-      }
+            Returns: {
+              avatar_url: string
+              category_ratings: Json
+              created_at: string
+              overall_rating: number
+              photo_captions: string[]
+              photo_dish_names: string[]
+              photos: string[]
+              review_id: string
+              review_text: string
+              source_type: string
+              user_id: string
+              username: string
+            }[]
+          }
       get_friend_profile_data: {
         Args: {
           requesting_user_id?: string
@@ -1244,49 +1260,71 @@ export type Database = {
           wishlist_count: number
         }[]
       }
-      get_friend_rating_stats: {
-        Args:
-          | { place_id_param: string; requesting_user_id?: string }
-          | {
+      get_friend_rating_stats:
+        | {
+            Args: { place_id_param: string; requesting_user_id?: string }
+            Returns: {
+              avg_rating: number
+              total_reviews: number
+            }[]
+          }
+        | {
+            Args: {
               place_id_param: string
               requesting_user_id?: string
               restaurant_name_param?: string
             }
-        Returns: {
-          avg_rating: number
-          total_reviews: number
-        }[]
-      }
-      get_friend_reviews_for_place: {
-        Args:
-          | {
+            Returns: {
+              avg_rating: number
+              total_reviews: number
+            }[]
+          }
+      get_friend_reviews_for_place:
+        | {
+            Args: {
               page_limit?: number
               page_offset?: number
               place_id_param: string
               requesting_user_id?: string
             }
-          | {
+            Returns: {
+              avatar_url: string
+              category_ratings: Json
+              created_at: string
+              overall_rating: number
+              photo_captions: string[]
+              photo_dish_names: string[]
+              photos: string[]
+              review_id: string
+              review_text: string
+              source_type: string
+              user_id: string
+              username: string
+            }[]
+          }
+        | {
+            Args: {
               page_limit?: number
               page_offset?: number
               place_id_param: string
               requesting_user_id?: string
               restaurant_name_param?: string
             }
-        Returns: {
-          avatar_url: string
-          category_ratings: Json
-          created_at: string
-          overall_rating: number
-          photo_captions: string[]
-          photo_dish_names: string[]
-          photos: string[]
-          review_id: string
-          review_text: string
-          source_type: string
-          user_id: string
-          username: string
-        }[]
-      }
+            Returns: {
+              avatar_url: string
+              category_ratings: Json
+              created_at: string
+              overall_rating: number
+              photo_captions: string[]
+              photo_dish_names: string[]
+              photos: string[]
+              review_id: string
+              review_text: string
+              source_type: string
+              user_id: string
+              username: string
+            }[]
+          }
       get_friend_wishlist_data: {
         Args: {
           requesting_user_id?: string
@@ -1340,22 +1378,38 @@ export type Database = {
         Args: { other_user_id: string }
         Returns: string
       }
-      get_restaurant_community_stats: {
-        Args:
-          | { place_id_param: string }
-          | { place_id_param: string; requesting_user_id?: string }
-          | {
+      get_restaurant_community_stats:
+        | {
+            Args: { place_id_param: string; requesting_user_id?: string }
+            Returns: {
+              average_rating: number
+              rating_distribution: Json
+              recent_photos: Json
+              total_reviews: number
+            }[]
+          }
+        | {
+            Args: {
               place_id_param: string
               requesting_user_id?: string
               restaurant_name_param?: string
             }
-        Returns: {
-          average_rating: number
-          rating_distribution: Json
-          recent_photos: Json
-          total_reviews: number
-        }[]
-      }
+            Returns: {
+              average_rating: number
+              rating_distribution: Json
+              recent_photos: Json
+              total_reviews: number
+            }[]
+          }
+        | {
+            Args: { place_id_param: string }
+            Returns: {
+              average_rating: number
+              rating_distribution: Json
+              recent_photos: Json
+              total_reviews: number
+            }[]
+          }
       get_restaurant_reviews: {
         Args: {
           page_limit?: number
@@ -1379,10 +1433,7 @@ export type Database = {
           username: string
         }[]
       }
-      get_user_score: {
-        Args: { user_id: string }
-        Returns: number
-      }
+      get_user_score: { Args: { user_id: string }; Returns: number }
       get_user_stats: {
         Args: { target_user_id: string }
         Returns: {
@@ -1391,26 +1442,6 @@ export type Database = {
           top_cuisine: string
           wishlist_count: number
         }[]
-      }
-      gtrgm_compress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_decompress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_in: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_options: {
-        Args: { "": unknown }
-        Returns: undefined
-      }
-      gtrgm_out: {
-        Args: { "": unknown }
-        Returns: unknown
       }
       has_role: {
         Args: {
@@ -1428,7 +1459,7 @@ export type Database = {
         Returns: boolean
       }
       link_all_restaurants_systematically: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           method: string
           restaurant_id: string
@@ -1441,7 +1472,7 @@ export type Database = {
         Returns: number
       }
       link_restaurants_to_google_places: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           method: string
           restaurant_id: string
@@ -1449,10 +1480,7 @@ export type Database = {
           updated_place_id: string
         }[]
       }
-      normalize_text: {
-        Args: { input: string }
-        Returns: string
-      }
+      normalize_text: { Args: { input: string }; Returns: string }
       rebuild_friend_activity_cache: {
         Args: { target_user_id: string }
         Returns: undefined
@@ -1470,22 +1498,9 @@ export type Database = {
           username: string
         }[]
       }
-      set_limit: {
-        Args: { "": number }
-        Returns: number
-      }
-      show_limit: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      show_trgm: {
-        Args: { "": string }
-        Returns: string[]
-      }
-      simple_emergency_link: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
+      simple_emergency_link: { Args: never; Returns: number }
       update_restaurant_google_place_id: {
         Args: {
           google_place_id_param: string
