@@ -51,41 +51,78 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Clear localStorage if quota exceeded
+    const clearStorageIfNeeded = () => {
+      try {
+        const storageKey = `sb-ocpmhsquwsdaauflbygf-auth-token`;
+        const testKey = 'test-storage';
+        localStorage.setItem(testKey, 'test');
+        localStorage.removeItem(testKey);
+      } catch (error) {
+        console.error('localStorage quota exceeded, clearing auth data:', error);
+        try {
+          const storageKey = `sb-ocpmhsquwsdaauflbygf-auth-token`;
+          localStorage.removeItem(storageKey);
+        } catch (clearError) {
+          console.error('Failed to clear localStorage:', clearError);
+          localStorage.clear();
+        }
+      }
+    };
+
+    clearStorageIfNeeded();
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
+        try {
+          setSession(newSession);
+          setUser(newSession?.user ?? null);
+          
+          // Fetch profile when user is available
+          if (newSession?.user) {
+            setTimeout(() => {
+              fetchProfile(newSession.user.id);
+            }, 0);
+          } else {
+            setProfile(null);
+          }
+          
+          setIsLoading(false);
+        } catch (error) {
+          console.error('Error in auth state change:', error);
+          if (error instanceof Error && error.name === 'QuotaExceededError') {
+            clearStorageIfNeeded();
+            setIsLoading(false);
+          }
+        }
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession()
+      .then(({ data: { session: currentSession } }) => {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
         
         // Fetch profile when user is available
-        if (newSession?.user) {
+        if (currentSession?.user) {
           setTimeout(() => {
-            fetchProfile(newSession.user.id);
+            fetchProfile(currentSession.user.id);
           }, 0);
         } else {
           setProfile(null);
         }
         
         setIsLoading(false);
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      
-      // Fetch profile when user is available
-      if (currentSession?.user) {
-        setTimeout(() => {
-          fetchProfile(currentSession.user.id);
-        }, 0);
-      } else {
-        setProfile(null);
-      }
-      
-      setIsLoading(false);
-    });
+      })
+      .catch((error) => {
+        console.error('Error getting session:', error);
+        if (error instanceof Error && error.name === 'QuotaExceededError') {
+          clearStorageIfNeeded();
+        }
+        setIsLoading(false);
+      });
 
     return () => subscription.unsubscribe();
   }, []);
