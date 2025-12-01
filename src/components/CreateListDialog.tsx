@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { BottomSheet, BottomSheetHeader, BottomSheetContent, BottomSheetFooter } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -40,12 +40,13 @@ export function CreateListDialog({ isOpen, onClose, onCreateList }: CreateListDi
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Create New List</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <BottomSheet open={isOpen} onOpenChange={handleClose}>
+      <BottomSheetHeader>
+        <h2 className="text-xl font-semibold">Create New List</h2>
+      </BottomSheetHeader>
+
+      <form onSubmit={handleSubmit}>
+        <BottomSheetContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="list-name">List Name</Label>
             <Input
@@ -69,20 +70,23 @@ export function CreateListDialog({ isOpen, onClose, onCreateList }: CreateListDi
               rows={3}
             />
           </div>
+        </BottomSheetContent>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={handleClose}>
+        <BottomSheetFooter>
+          <div className="flex gap-2 w-full">
+            <Button type="button" variant="outline" onClick={handleClose} className="flex-1">
               Cancel
             </Button>
             <Button 
               type="submit" 
               disabled={!name.trim() || isSubmitting}
+              className="flex-1"
             >
               {isSubmitting ? 'Creating...' : 'Create List'}
             </Button>
           </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </BottomSheetFooter>
+      </form>
+    </BottomSheet>
   );
 }
