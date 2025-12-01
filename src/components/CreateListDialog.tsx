@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BottomSheet, BottomSheetHeader, BottomSheetContent, BottomSheetFooter } from '@/components/ui/bottom-sheet';
+import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -41,12 +41,12 @@ export function CreateListDialog({ isOpen, onClose, onCreateList }: CreateListDi
 
   return (
     <BottomSheet open={isOpen} onOpenChange={handleClose}>
-      <BottomSheetHeader>
+      <div className="px-4 pt-2 pb-4 border-b">
         <h2 className="text-xl font-semibold">Create New List</h2>
-      </BottomSheetHeader>
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        <BottomSheetContent className="space-y-4">
+      <form onSubmit={handleSubmit} className="flex flex-col h-full">
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="list-name">List Name</Label>
             <Input
@@ -70,9 +70,9 @@ export function CreateListDialog({ isOpen, onClose, onCreateList }: CreateListDi
               rows={3}
             />
           </div>
-        </BottomSheetContent>
+        </div>
 
-        <BottomSheetFooter>
+        <div className="px-4 py-4 border-t bg-background">
           <div className="flex gap-2 w-full">
             <Button type="button" variant="outline" onClick={handleClose} className="flex-1">
               Cancel
@@ -85,7 +85,7 @@ export function CreateListDialog({ isOpen, onClose, onCreateList }: CreateListDi
               {isSubmitting ? 'Creating...' : 'Create List'}
             </Button>
           </div>
-        </BottomSheetFooter>
+        </div>
       </form>
     </BottomSheet>
   );
