@@ -25,6 +25,22 @@
     <meta name="twitter:site" content="@lovable_dev" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
     <script>
+      // GitHub Pages SPA redirect handler
+      // Restores the proper URL after redirect from 404.html
+      (function() {
+        var l = window.location;
+        if (l.search && l.search.indexOf('?p=') === 0) {
+          var decoded = l.search.slice(3).split('&q=');
+          var path = decoded[0].replace(/~and~/g, '&');
+          var query = decoded[1] ? ('?' + decoded[1].replace(/~and~/g, '&')) : '';
+          window.history.replaceState(null, null,
+            l.pathname.slice(0, -1) + (path ? '/' + decodeURIComponent(path) : '') +
+            decodeURIComponent(query) + l.hash
+          );
+        }
+      })();
+    </script>
+    <script>
       // Prevent flash of incorrect theme
       (function() {
         const stored = localStorage.getItem('theme');
