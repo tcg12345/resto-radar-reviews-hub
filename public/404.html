@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Redirecting...</title>
+    <script>
+      // GitHub Pages SPA redirect workaround
+      // This script stores the current path and redirects to index.html
+      // The index.html will then restore the correct URL
+      var pathSegmentsToKeep = 1; // Keep '/resto-radar-reviews-hub' segment
+      var l = window.location;
+      var redirectPath = l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?p=' +
+        encodeURIComponent(l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~')) +
+        (l.search ? '&q=' + encodeURIComponent(l.search.slice(1).replace(/&/g, '~and~')) : '') +
+        l.hash;
+      l.replace(redirectPath);
+    </script>
+  </head>
+  <body>
+    <p>Redirecting...</p>
+  </body>
+</html>
