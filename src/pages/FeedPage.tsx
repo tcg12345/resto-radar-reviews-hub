@@ -439,15 +439,15 @@ export default function FeedPage() {
 
   if (!isLoading && filteredItems.length === 0 && feedItems.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] px-4">
-        <TrendingUp className="h-16 w-16 text-muted-foreground mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Your Feed is Empty</h2>
-        <p className="text-muted-foreground text-center mb-6">
+      <div className="flex flex-col items-center justify-center min-h-[400px] px-4 bg-background">
+        <TrendingUp className="h-16 w-16 text-muted-foreground/40 mb-4" />
+        <h2 className="text-xl font-headline font-bold mb-2">Your Feed is Empty</h2>
+        <p className="text-muted-foreground text-center mb-6 font-body">
           Follow friends and experts to see their restaurant discoveries and reviews here.
         </p>
         <div className="flex gap-3">
-          <Button onClick={() => navigate('/friends')}>Find Friends</Button>
-          <Button variant="outline" onClick={() => navigate('/search/experts')}>Discover Experts</Button>
+          <Button onClick={() => navigate('/friends')} className="rounded-full">Find Friends</Button>
+          <Button variant="outline" onClick={() => navigate('/search/experts')} className="rounded-full border-primary/20 text-primary">Discover Experts</Button>
         </div>
       </div>
     );
