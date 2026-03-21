@@ -1137,14 +1137,14 @@ export type Database = {
       }
       get_expert_rating_stats:
         | {
-            Args: { place_id_param: string; restaurant_name_param?: string }
+            Args: { place_id_param: string }
             Returns: {
               avg_rating: number
               total_reviews: number
             }[]
           }
         | {
-            Args: { place_id_param: string }
+            Args: { place_id_param: string; restaurant_name_param?: string }
             Returns: {
               avg_rating: number
               total_reviews: number
@@ -1380,6 +1380,15 @@ export type Database = {
       }
       get_restaurant_community_stats:
         | {
+            Args: { place_id_param: string }
+            Returns: {
+              average_rating: number
+              rating_distribution: Json
+              recent_photos: Json
+              total_reviews: number
+            }[]
+          }
+        | {
             Args: { place_id_param: string; requesting_user_id?: string }
             Returns: {
               average_rating: number
@@ -1394,15 +1403,6 @@ export type Database = {
               requesting_user_id?: string
               restaurant_name_param?: string
             }
-            Returns: {
-              average_rating: number
-              rating_distribution: Json
-              recent_photos: Json
-              total_reviews: number
-            }[]
-          }
-        | {
-            Args: { place_id_param: string }
             Returns: {
               average_rating: number
               rating_distribution: Json
