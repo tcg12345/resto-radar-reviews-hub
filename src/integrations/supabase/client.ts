@@ -5,12 +5,72 @@ import type { Database } from './types';
 const SUPABASE_URL = "https://ocpmhsquwsdaauflbygf.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcG1oc3F1d3NkYWF1ZmxieWdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3OTExOTYsImV4cCI6MjA2ODM2NzE5Nn0.Xf7eNeuD37Vve1jpTyuBTdWqPdqnRXN0jFU84O-4H20";
 
+const memoryStorage = new Map<string, string>();
+
+const getBrowserStorages = (): Storage[] => {
+  if (typeof window === 'undefined') return [];
+
+  return [window.localStorage, window.sessionStorage].filter(
+    (storage): storage is Storage => Boolean(storage)
+  );
+};
+
+const safeStorage = {
+  getItem(key: string) {
+    for (const storage of getBrowserStorages()) {
+      try {
+        const value = storage.getItem(key);
+        if (value !== null) return value;
+      } catch {
+        // Ignore storage access issues and fall back.
+      }
+    }
+
+    return memoryStorage.get(key) ?? null;
+  },
+
+  setItem(key: string, value: string) {
+    for (const storage of getBrowserStorages()) {
+      try {
+        storage.setItem(key, value);
+        memoryStorage.set(key, value);
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+          try {
+            storage.removeItem(key);
+            storage.setItem(key, value);
+            memoryStorage.set(key, value);
+            return;
+          } catch {
+            // Continue to the next available storage.
+          }
+        }
+      }
+    }
+
+    memoryStorage.set(key, value);
+  },
+
+  removeItem(key: string) {
+    for (const storage of getBrowserStorages()) {
+      try {
+        storage.removeItem(key);
+      } catch {
+        // Ignore storage access issues.
+      }
+    }
+
+    memoryStorage.delete(key);
+  },
+};
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    storage: localStorage,
+    storage: safeStorage,
     persistSession: true,
     autoRefreshToken: true,
   }
