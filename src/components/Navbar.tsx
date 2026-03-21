@@ -1,9 +1,8 @@
 
 import { useState } from 'react';
-import { MapPin, Star, Heart, Home, Search, Settings, Users, MessageCircle, Calendar, User } from 'lucide-react';
+import { Star, Home, Search, Settings, Users, User, Bell, Menu } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/contexts/AuthContext';
 import { GrubbyLogo } from '@/components/GrubbyLogo';
 import { NotificationsPanel } from '@/components/NotificationsPanel';
@@ -21,58 +20,57 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
   const unreadMessageCount = useUnreadMessageCount();
 
   const tabsDesktop = [
-    { id: 'home' as const, label: 'Home', icon: Home, shortLabel: 'Home' },
-    { id: 'search' as const, label: 'Search & Discover', icon: Search, shortLabel: 'Search' },
-    { id: 'places' as const, label: 'My Places', icon: Star, shortLabel: 'Places' },
-    { id: 'friends' as const, label: 'Friends', icon: Users, shortLabel: 'Friends' },
-    { id: 'profile' as const, label: 'Profile', icon: User, shortLabel: 'Profile' },
+    { id: 'home' as const, label: 'Home', icon: Home },
+    { id: 'search' as const, label: 'Discover', icon: Search },
+    { id: 'places' as const, label: 'My Places', icon: Star },
+    { id: 'friends' as const, label: 'Friends', icon: Users },
+    { id: 'profile' as const, label: 'Profile', icon: User },
   ];
 
-  const tabsMobile = [
-    { id: 'home' as const, label: 'Home', icon: Home, shortLabel: 'Home' },
-    { id: 'search' as const, label: 'Search & Discover', icon: Search, shortLabel: 'Search' },
-    { id: 'places' as const, label: 'My Places', icon: Star, shortLabel: 'Places' },
-    { id: 'friends' as const, label: 'Friends', icon: Users, shortLabel: 'Friends' },
-    { id: 'profile' as const, label: 'Profile', icon: User, shortLabel: 'Profile' },
+  const tabsMobile: { id: typeof tabsDesktop[number]['id']; label: string; icon: any }[] = [
+    { id: 'home', label: 'Home', icon: Home },
+    { id: 'search', label: 'Search', icon: Search },
+    { id: 'places', label: 'Places', icon: Star },
+    { id: 'friends', label: 'Friends', icon: Users },
+    { id: 'profile', label: 'Profile', icon: User },
   ];
 
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="hidden lg:block sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <nav className="hidden lg:block sticky top-0 z-50 w-full glass-nav border-b border-outline-variant/20">
         <div className="w-full max-w-none flex h-16 items-center px-6">
           <div className="cursor-pointer mr-8" onClick={() => onTabChange('home')}>
             <GrubbyLogo size="md" />
           </div>
 
           <div className="flex-1 flex justify-center">
-            <div className="flex items-center space-x-1 rounded-lg bg-muted/50 p-1">
+            <div className="flex items-center space-x-1">
               {tabsDesktop.map((tab) => {
                 const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
                 return (
-                  <Button
+                  <button
                     key={tab.id}
-                    variant={activeTab === tab.id ? 'default' : 'ghost'}
-                    size="sm"
                     onClick={() => onTabChange(tab.id)}
-                    className={`relative px-4 py-2 transition-all duration-200 ${
-                      activeTab === tab.id 
-                        ? 'bg-primary text-primary-foreground shadow-sm' 
-                        : 'hover:bg-muted'
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-surface-container-high'
                     }`}
                   >
-                    <Icon className="mr-2 h-4 w-4" />
+                    <Icon className="h-4 w-4" />
                     {tab.label}
-                    {activeTab === tab.id && (
-                      <div className="absolute inset-x-0 -bottom-1 h-0.5 bg-primary-foreground/20 rounded-full" />
-                    )}
-                  </Button>
+                  </button>
                 );
               })}
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
+            <button className="text-primary hover:opacity-80 transition-opacity">
+              <Bell size={22} />
+            </button>
             {user ? (
               <AppSidebar />
             ) : (
@@ -80,9 +78,8 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                 variant="outline" 
                 size="sm" 
                 onClick={() => navigate('/auth')}
-                className="flex items-center gap-2"
+                className="rounded-full px-5 border-primary/20 text-primary hover:bg-primary/5"
               >
-                <Settings className="h-4 w-4" />
                 Sign In
               </Button>
             )}
@@ -90,14 +87,17 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
         </div>
       </nav>
 
-      {/* Mobile Top Bar */}
-      <nav className="lg:hidden sticky top-0 z-50 w-full bg-background border-b border-border/50 pt-safe-area-top">
-        <div className="flex h-14 items-center justify-between px-4">
+      {/* Mobile Top Bar - Glass style */}
+      <nav className="lg:hidden sticky top-0 z-50 w-full glass-nav pt-safe-area-top border-b border-outline-variant/20">
+        <div className="flex h-14 items-center justify-between px-5">
           <div className="cursor-pointer" onClick={() => onTabChange('home')}>
             <GrubbyLogo size="sm" />
           </div>
           
           <div className="flex items-center space-x-3">
+            <button className="text-primary hover:opacity-80 transition-opacity">
+              <Bell size={22} />
+            </button>
             {user ? (
               <div className="lg:hidden">
                 <AppSidebar />
@@ -107,7 +107,7 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
                 variant="outline" 
                 size="sm" 
                 onClick={() => navigate('/auth')}
-                className="mobile-tap-target rounded-full px-4"
+                className="rounded-full px-4 border-primary/20 text-primary"
               >
                 Sign In
               </Button>
@@ -116,35 +116,24 @@ export function Navbar({ activeTab, onTabChange }: NavbarProps) {
         </div>
       </nav>
 
-      {/* Mobile Bottom Navigation - Modern Circular Design */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border/20">
+      {/* Mobile Bottom Navigation - Glass rounded */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 glass-nav rounded-t-3xl shadow-[0_-4px_20px_0_rgba(30,27,26,0.06)]">
         <div className="pb-safe-area-bottom">
-          <div className="flex justify-around items-center px-4 pt-0 pb-1">
+          <div className="flex justify-around items-center px-4 h-20">
             {tabsMobile.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
-                <div key={tab.id} className="flex flex-col items-center">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onTabChange(tab.id)}
-                    className={`relative h-12 w-12 mobile-tap-target transition-all duration-300 ${
-                      isActive 
-                        ? 'text-primary bg-transparent hover:bg-transparent' 
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/40 hover:scale-105'
-                    }`}
-                  >
-                    <Icon className={`transition-all duration-300 ${
-                      isActive ? 'text-primary h-8 w-8' : 'h-7 w-7'
-                    }`} />
-                  </Button>
-                  <span className={`transition-all duration-300 -mt-2 pb-1 ${
-                    isActive ? 'text-primary text-[12px] font-bold' : 'text-muted-foreground text-[11px] font-medium'
-                  }`}>
-                    {tab.shortLabel}
-                  </span>
-                </div>
+                <button
+                  key={tab.id}
+                  onClick={() => onTabChange(tab.id)}
+                  className={`flex flex-col items-center justify-center transition-all duration-200 ${
+                    isActive ? 'text-primary font-bold scale-110' : 'text-muted-foreground hover:text-primary'
+                  }`}
+                >
+                  <Icon size={24} fill={isActive ? 'currentColor' : 'none'} />
+                  <span className="text-[10px] font-medium uppercase tracking-widest mt-1">{tab.label}</span>
+                </button>
               );
             })}
           </div>

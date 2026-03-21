@@ -431,7 +431,7 @@ export default function FeedPage() {
 
   if (isLoading && feedItems.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[400px] bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
@@ -439,15 +439,15 @@ export default function FeedPage() {
 
   if (!isLoading && filteredItems.length === 0 && feedItems.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] px-4">
-        <TrendingUp className="h-16 w-16 text-muted-foreground mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Your Feed is Empty</h2>
-        <p className="text-muted-foreground text-center mb-6">
+      <div className="flex flex-col items-center justify-center min-h-[400px] px-4 bg-background">
+        <TrendingUp className="h-16 w-16 text-muted-foreground/40 mb-4" />
+        <h2 className="text-xl font-headline font-bold mb-2">Your Feed is Empty</h2>
+        <p className="text-muted-foreground text-center mb-6 font-body">
           Follow friends and experts to see their restaurant discoveries and reviews here.
         </p>
         <div className="flex gap-3">
-          <Button onClick={() => navigate('/friends')}>Find Friends</Button>
-          <Button variant="outline" onClick={() => navigate('/search/experts')}>Discover Experts</Button>
+          <Button onClick={() => navigate('/friends')} className="rounded-full">Find Friends</Button>
+          <Button variant="outline" onClick={() => navigate('/search/experts')} className="rounded-full border-primary/20 text-primary">Discover Experts</Button>
         </div>
       </div>
     );
@@ -456,15 +456,18 @@ export default function FeedPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
-        <div className="flex items-center justify-between p-4">
-          <h1 className="text-xl font-bold">Feed</h1>
+      <div className="px-4 pt-4 pb-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="font-label text-[10px] font-medium uppercase tracking-[0.2em] text-primary">Your Feed</span>
+            <h1 className="font-headline text-2xl font-bold text-foreground">Latest Activity</h1>
+          </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-primary hover:text-primary/80 hover:bg-primary/5 rounded-full"
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </Button>
@@ -506,9 +509,11 @@ export default function FeedPage() {
 
       {/* Feed Content */}
       <ScrollArea className="flex-1">
-        <div className="pb-20">
+        <div className="pb-24 space-y-3 px-4">
           {filteredItems.map(item => (
-            <FeedItemCard key={item.id} item={item} />
+            <div key={item.id} className="bg-surface-container-low rounded-xl transition-colors hover:bg-surface-container-high">
+              <FeedItemCard item={item} />
+            </div>
           ))}
           <InfiniteScrollLoader
             hasMore={hasMore}

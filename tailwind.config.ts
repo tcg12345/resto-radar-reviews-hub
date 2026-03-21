@@ -19,9 +19,12 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				'sans': ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-				'serif': ['Playfair Display', 'ui-serif', 'Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
-				'display': ['Playfair Display', 'ui-serif', 'Georgia', 'serif'],
+				'sans': ['Manrope', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+				'headline': ['Noto Serif', 'ui-serif', 'Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
+				'body': ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+				'label': ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+				'serif': ['Noto Serif', 'ui-serif', 'Georgia', 'serif'],
+				'display': ['Noto Serif', 'ui-serif', 'Georgia', 'serif'],
 			},
 			fontSize: {
 				'xs': ['0.75rem', { lineHeight: '1rem' }],
@@ -110,7 +113,13 @@ export default {
                     DEFAULT: 'hsl(var(--glass))',
                     border: 'hsl(var(--glass-border))',
                     highlight: 'hsl(var(--glass-highlight))'
-                }
+                },
+				'surface-container-low': 'hsl(var(--surface-container-low))',
+				'surface-container': 'hsl(var(--surface-container))',
+				'surface-container-high': 'hsl(var(--surface-container-high))',
+				'surface-container-highest': 'hsl(var(--surface-container-highest))',
+				'surface-container-lowest': 'hsl(var(--surface-container-lowest))',
+				'outline-variant': 'hsl(var(--outline-variant))',
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
@@ -123,12 +132,16 @@ export default {
 				'premium': 'var(--shadow-lg)',
 				'premium-glow': 'var(--shadow-glow)',
 				'premium-xl': 'var(--shadow-xl)',
-				'premium-2xl': 'var(--shadow-2xl)',
+				'premium-2xl': '0 48px 80px -20px rgba(30, 27, 26, 0.12)',
+				'editorial': '0 32px 64px -12px rgba(30, 27, 26, 0.06)',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				'xl': '1rem',
+				'2xl': '1.5rem',
+				'3xl': '2rem',
 			},
 			zIndex: {
 				'modal': '9999',
@@ -136,66 +149,32 @@ export default {
 			},
 			keyframes: {
 				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
+					from: { height: '0' },
+					to: { height: 'var(--radix-accordion-content-height)' }
 				},
 				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
+					from: { height: 'var(--radix-accordion-content-height)' },
+					to: { height: '0' }
 				},
 				'fade-in-up': {
-					'0%': {
-						opacity: '0',
-						transform: 'translateY(20px)'
-					},
-					'100%': {
-						opacity: '1',
-						transform: 'translateY(0)'
-					}
+					'0%': { opacity: '0', transform: 'translateY(20px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
 				},
 				'scale-in-premium': {
-					'0%': {
-						opacity: '0',
-						transform: 'scale(0.95)'
-					},
-					'100%': {
-						opacity: '1',
-						transform: 'scale(1)'
-					}
+					'0%': { opacity: '0', transform: 'scale(0.95)' },
+					'100%': { opacity: '1', transform: 'scale(1)' }
 				},
 				'slide-in-left': {
-					'0%': {
-						opacity: '0',
-						transform: 'translateX(-20px)'
-					},
-					'100%': {
-						opacity: '1',
-						transform: 'translateX(0)'
-					}
+					'0%': { opacity: '0', transform: 'translateX(-20px)' },
+					'100%': { opacity: '1', transform: 'translateX(0)' }
 				},
 				'glow-pulse': {
-					'0%, 100%': {
-						boxShadow: '0 0 0 0 hsl(var(--primary) / 0.3)'
-					},
-					'50%': {
-						boxShadow: '0 0 30px 10px hsl(var(--primary) / 0.1)'
-					}
+					'0%, 100%': { boxShadow: '0 0 0 0 hsl(var(--primary) / 0.3)' },
+					'50%': { boxShadow: '0 0 30px 10px hsl(var(--primary) / 0.1)' }
 				},
 				'shimmer': {
-					'0%': {
-						backgroundPosition: '-200% 0'
-					},
-					'100%': {
-						backgroundPosition: '200% 0'
-					}
+					'0%': { backgroundPosition: '-200% 0' },
+					'100%': { backgroundPosition: '200% 0' }
 				}
 			},
 			animation: {
