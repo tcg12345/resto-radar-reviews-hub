@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Plus, Check, ChevronDown, X, Sliders, MapPin, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -82,7 +82,7 @@ export function RatedRestaurantsPage({
   }, [selectedListId, getRestaurantsInList]);
 
   const sourceRestaurants = restaurants.length > 0 ? restaurants : cachedRestaurants;
-  const ratedRestaurants = sourceRestaurants.filter((r) => !r.isWishlist);
+  const ratedRestaurants = useMemo(() => sourceRestaurants.filter((r) => !r.isWishlist), [sourceRestaurants]);
 
   // Handle opening the add dialog when triggered from HomePage
   useEffect(() => {
@@ -185,9 +185,11 @@ const preloadImages = async () => {
     }
   }, [ratedRestaurants.length]);
 
-  // Get unique cuisines
-  const cuisines = Array.from(new Set(ratedRestaurants.map(r => r.cuisine).filter(cuisine => cuisine && cuisine.trim() !== '')))
-;
+  // Get unique cuisines (memoized)
+  const cuisines = useMemo(
+    () => Array.from(new Set(ratedRestaurants.map(r => r.cuisine).filter(cuisine => cuisine && cuisine.trim() !== ''))),
+    [ratedRestaurants]
+  );
 
   // Helper functions for multi-select
   const toggleCuisine = (cuisine: string) => {
@@ -305,12 +307,16 @@ const preloadImages = async () => {
     return { cuisineCounts, priceCounts, michelinCounts };
   };
 
-  const { cuisineCounts, priceCounts, michelinCounts } = getFilterCounts();
+  const { cuisineCounts, priceCounts, michelinCounts } = useMemo(
+    () => getFilterCounts(),
+    [ratedRestaurants, searchTerm, ratingRange, filterPrices, filterMichelins, cuisines]
+  );
 
   // Filter and sort restaurants
   const displayRestaurants = selectedListId ? listRestaurants : ratedRestaurants;
 
-  const filteredRestaurants = displayRestaurants
+  const filteredRestaurants = useMemo(() => (
+    displayRestaurants
     .filter((restaurant) => {
       // Apply search filter
       const matchesSearch = searchTerm === ''
@@ -360,7 +366,33 @@ const preloadImages = async () => {
         return (a.michelinStars || 0) - (b.michelinStars || 0);
       }
       return 0;
-    });
+    })
+  ), [displayRestaurants, searchTerm, filterCuisines, filterPrices, filterMichelins, ratingRange, sortBy]);
+
+  // Infinite scroll (client-side) to limit initial render work
+  const [visibleCount, setVisibleCount] = useState(24);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setVisibleCount(24);
+  }, [searchTerm, filterCuisines, filterPrices, filterMichelins, ratingRange, sortBy, selectedListId, listRestaurants.length, view]);
+
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver((entries) => {
+      const first = entries[0];
+      if (first.isIntersecting) {
+        setVisibleCount((prev) => Math.min(prev + 24, filteredRestaurants.length));
+      }
+    }, { rootMargin: '200px' });
+    observer.observe(node);
+    return () => {
+      observer.disconnect();
+    };
+  }, [filteredRestaurants.length]);
+
+  const visibleRestaurants = filteredRestaurants.slice(0, visibleCount);
 
   const handleOpenEditDialog = (id: string) => {
     const restaurant = restaurants.find((r) => r.id === id);
@@ -868,24 +900,31 @@ const preloadImages = async () => {
         </div>
       ) : (
         <div className={view === 'grid' ? 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3' : 'space-y-4'}>
-          {filteredRestaurants.map((restaurant) => (
+          {visibleRestaurants.map((restaurant) => (
             view === 'grid' ? (
-              <RestaurantCard
-                key={restaurant.id}
-                restaurant={restaurant}
-                onEdit={handleOpenEditDialog}
-                onDelete={handleOpenDeleteDialog}
-                showAIReviewAssistant={true}
-              />
+              <div key={restaurant.id}>
+                <RestaurantCard
+                  restaurant={restaurant}
+                  onEdit={handleOpenEditDialog}
+                  onDelete={handleOpenDeleteDialog}
+                  showAIReviewAssistant={true}
+                />
+              </div>
             ) : (
-              <RestaurantCardList
-                key={restaurant.id}
-                restaurant={restaurant}
-                onEdit={handleOpenEditDialog}
-                onDelete={handleOpenDeleteDialog}
-              />
+              <div key={restaurant.id}>
+                <RestaurantCardList
+                  restaurant={restaurant}
+                  onEdit={handleOpenEditDialog}
+                  onDelete={handleOpenDeleteDialog}
+                />
+              </div>
             )
           ))}
+          {visibleCount < filteredRestaurants.length && (
+            <div ref={loadMoreRef} className="py-6 text-center text-muted-foreground">
+              Loading more...
+            </div>
+          )}
         </div>
       )}
 

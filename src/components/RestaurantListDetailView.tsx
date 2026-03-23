@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Plus, Search, Star, Download } from 'lucide-react';
@@ -41,14 +41,26 @@ interface Restaurant {
 export function RestaurantListDetailView({ list, onBack }: RestaurantListDetailViewProps) {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
+  const pageSize = 24;
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showImportDialog, setShowImportDialog] = useState(false);
   const { getRestaurantsInList } = useRestaurantLists();
   const { toast } = useToast();
 
   useEffect(() => {
-    loadRestaurants();
+    // reset paging when list changes
+    setRestaurants([]);
+    setHasMore(true);
+    setPage(0);
   }, [list.id]);
+
+  useEffect(() => {
+    loadRestaurants();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [list.id, page]);
 
   const loadRestaurants = async () => {
     try {
@@ -63,7 +75,8 @@ export function RestaurantListDetailView({ list, onBack }: RestaurantListDetailV
           .eq('is_wishlist', false)
           .not('rating', 'is', null)
           .order('date_visited', { ascending: false })
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .range(page * pageSize, page * pageSize + pageSize - 1);
 
         if (error) throw error;
         restaurantsData = data || [];
@@ -73,7 +86,13 @@ export function RestaurantListDetailView({ list, onBack }: RestaurantListDetailV
         restaurantsData = restaurantsFromList as Restaurant[];
       }
 
-      setRestaurants(restaurantsData);
+      if (list.is_default) {
+        setRestaurants(prev => (page === 0 ? restaurantsData : [...prev, ...restaurantsData]));
+        setHasMore(restaurantsData.length === pageSize);
+      } else {
+        setRestaurants(restaurantsData);
+        setHasMore(false);
+      }
     } catch (error: any) {
       console.error('Error loading restaurants:', error);
       toast({
@@ -86,11 +105,27 @@ export function RestaurantListDetailView({ list, onBack }: RestaurantListDetailV
     }
   };
 
-  const filteredRestaurants = restaurants.filter(restaurant =>
-    restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    restaurant.cuisine.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    restaurant.city.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredRestaurants = useMemo(() => (
+    restaurants.filter(restaurant =>
+      restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      restaurant.cuisine.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      restaurant.city.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  ), [restaurants, searchQuery]);
+
+  useEffect(() => {
+    if (!list.is_default) return;
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver((entries) => {
+      const first = entries[0];
+      if (first.isIntersecting && hasMore && !loading) {
+        setPage((p) => p + 1);
+      }
+    }, { rootMargin: '200px' });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMore, loading, list.is_default]);
 
   const handleImportRestaurants = async (newRestaurants: any[]) => {
     try {
@@ -206,7 +241,7 @@ export function RestaurantListDetailView({ list, onBack }: RestaurantListDetailV
       </div>
 
       {/* Restaurants Grid */}
-      {loading ? (
+      {loading && restaurants.length === 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map(i => (
             <div key={i} className="h-48 bg-muted animate-pulse rounded-lg" />
@@ -238,8 +273,8 @@ export function RestaurantListDetailView({ list, onBack }: RestaurantListDetailV
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredRestaurants.map(restaurant => (
-            <RestaurantCard
-              key={restaurant.id}
+            <div key={restaurant.id}>
+              <RestaurantCard
               restaurant={{
                 ...restaurant,
                 photos: restaurant.photos || [],
@@ -253,7 +288,13 @@ export function RestaurantListDetailView({ list, onBack }: RestaurantListDetailV
               onEdit={() => {}}
               onDelete={() => {}}
             />
+            </div>
           ))}
+          {list.is_default && hasMore && (
+            <div ref={loadMoreRef} className="col-span-full py-6 text-center text-muted-foreground">
+              {loading ? 'Loading more...' : 'Load more'}
+            </div>
+          )}
         </div>
       )}
 
